@@ -1,0 +1,54 @@
+FROM debian:stretch
+MAINTAINER Lan Tian "lantian@lantian.pub"
+ENV NGINX_VERSION=1.15.1 OPENSSL_VERSION=OpenSSL_1_1_1-pre8
+RUN apt-get update -q \
+    && apt-get -y upgrade \
+    && apt-get -y install build-essential git autoconf automake libtool wget tar zlib1g-dev libpcre3 libpcre3-dev unzip libjemalloc-dev patch
+RUN cd /tmp \
+    && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
+      && tar xf nginx-${NGINX_VERSION}.tar.gz \
+      && cd /tmp/nginx-${NGINX_VERSION} \
+      && wget -qO- https://github.com/kn007/patch/raw/master/nginx.patch | patch -p1 \
+      && wget -qO- https://github.com/kn007/patch/raw/master/fix_nginx_hpack_push_error.patch | patch -p1 \
+      && cd /tmp \
+    && git clone https://github.com/google/ngx_brotli.git \
+      && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
+    && wget -q https://github.com/openssl/openssl/archive/${OPENSSL_VERSION}.zip \
+      && unzip -q ${OPENSSL_VERSION}.zip \
+      && cd /tmp/openssl-${OPENSSL_VERSION} \
+      && wget -qO- https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-pre8_ciphers.patch | patch -p1 \
+      && cd /tmp \
+    && wget -q https://github.com/openresty/headers-more-nginx-module/archive/v0.32.zip \
+      && unzip -q v0.32.zip \
+    && cd /tmp/nginx-${NGINX_VERSION} \
+    && ./configure \
+       --with-threads \
+       --with-file-aio \
+       --with-ipv6 \
+       --with-http_ssl_module \
+       --with-http_spdy_module \
+       --with-http_v2_module \
+       --with-http_v2_hpack_enc \
+       --with-http_gzip_static_module \
+       --with-http_gunzip_module \
+       --with-http_realip_module \
+       --with-http_stub_status_module \
+       --with-http_sub_module \
+       --with-http_addition_module \
+       --add-module=/tmp/ngx_brotli \
+       --add-module=/tmp/headers-more-nginx-module-0.32 \
+       --with-openssl=/tmp/openssl-${OPENSSL_VERSION} \
+       --with-openssl-opt='enable-ec_nistp_64_gcc_128 enable-weak-ssl-ciphers enable-tls1_3 -ljemalloc' \
+       --with-ld-opt="-ljemalloc" \
+       --with-cc-opt="-O3 -flto -fPIC -fPIE -fstack-protector-strong -Wformat -Werror=format-security -Wno-deprecated-declarations -Wno-strict-aliasing" \
+    && make \
+    && make install \
+    && cd / && rm -rf /tmp/* \
+    && apt-get purge -y unzip -q git autoconf libtool automake build-essential \
+    && apt-get autoremove -y --purge \
+    && apt-get clean \
+    && ln -sf /usr/local/nginx/sbin/nginx /usr/local/nginx \
+    && ln -sf /dev/stdout /usr/local/nginx/logs/access.log \
+      && ln -sf /dev/stderr /usr/local/nginx/logs/error.log
+#EXPOSE 80 443
+ENTRYPOINT /usr/local/nginx
