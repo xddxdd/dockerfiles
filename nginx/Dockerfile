@@ -1,10 +1,8 @@
-FROM debian:stretch
+FROM alpine
 MAINTAINER Lan Tian "lantian@lantian.pub"
 ENV NGINX_VERSION=1.15.1 OPENSSL_VERSION=OpenSSL_1_1_1-pre8
-RUN apt-get update -q \
-    && apt-get -y upgrade \
-    && apt-get -y install build-essential git autoconf automake libtool wget tar zlib1g-dev libpcre3 libpcre3-dev unzip libjemalloc-dev patch
-RUN cd /tmp \
+RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-dev pcre-dev unzip jemalloc-dev patch linux-headers \
+    && cd /tmp \
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
       && tar xf nginx-${NGINX_VERSION}.tar.gz \
       && cd /tmp/nginx-${NGINX_VERSION} \
@@ -41,14 +39,12 @@ RUN cd /tmp \
        --with-openssl-opt='enable-ec_nistp_64_gcc_128 enable-weak-ssl-ciphers enable-tls1_3 -ljemalloc' \
        --with-ld-opt="-ljemalloc" \
        --with-cc-opt="-O3 -flto -fPIC -fPIE -fstack-protector-strong -Wformat -Werror=format-security -Wno-deprecated-declarations -Wno-strict-aliasing" \
-    && make \
+    && make -j \
     && make install \
+    && apk del build-base git autoconf automake wget tar unzip patch linux-headers || true \
     && cd / && rm -rf /tmp/* \
-    && apt-get purge -y unzip -q git autoconf libtool automake build-essential \
-    && apt-get autoremove -y --purge \
-    && apt-get clean \
-    && ln -sf /usr/local/nginx/sbin/nginx /usr/local/nginx \
+    && ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx \
     && ln -sf /dev/stdout /usr/local/nginx/logs/access.log \
       && ln -sf /dev/stderr /usr/local/nginx/logs/error.log
 #EXPOSE 80 443
-ENTRYPOINT /usr/local/nginx
+ENTRYPOINT /usr/sbin/nginx
