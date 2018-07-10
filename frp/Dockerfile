@@ -1,5 +1,5 @@
 FROM alpine
-ENV FRP_VER=0.13.0
+ENV FRP_VER=0.20.0
 RUN apk add --update wget tar \
   && mkdir /frp \
   && wget --no-check-certificate https://github.com/fatedier/frp/releases/download/v${FRP_VER}/frp_${FRP_VER}_linux_amd64.tar.gz \
