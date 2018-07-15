@@ -41,7 +41,7 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-de
        --with-cc-opt="-O3 -flto -fPIC -fPIE -fstack-protector-strong -Wformat -Werror=format-security -Wno-deprecated-declarations -Wno-strict-aliasing" \
     && make -j \
     && make install \
-    && apk del .build-deps linux-headers || true \
+    && apk del build-base git autoconf automake wget tar unzip patch linux-headers || true \
     && cd / && rm -rf /tmp/* \
     && ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx \
     && ln -sf /dev/stdout /usr/local/nginx/logs/access.log \
