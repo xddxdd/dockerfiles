@@ -16,8 +16,7 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-de
       && cd /tmp/openssl-${OPENSSL_VERSION} \
       && wget -qO- https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-pre8_ciphers.patch | patch -p1 \
       && cd /tmp \
-    && wget -q https://github.com/openresty/headers-more-nginx-module/archive/v0.32.zip \
-      && unzip -q v0.32.zip \
+    && git clone https://github.com/openresty/headers-more-nginx-module.git \
     && cd /tmp/nginx-${NGINX_VERSION} \
     && ./configure \
        --with-threads \
@@ -34,7 +33,7 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-de
        --with-http_sub_module \
        --with-http_addition_module \
        --add-module=/tmp/ngx_brotli \
-       --add-module=/tmp/headers-more-nginx-module-0.32 \
+       --add-module=/tmp/headers-more-nginx-module \
        --with-openssl=/tmp/openssl-${OPENSSL_VERSION} \
        --with-openssl-opt='enable-ec_nistp_64_gcc_128 enable-weak-ssl-ciphers enable-tls1_3 -ljemalloc' \
        --with-ld-opt="-ljemalloc" \
