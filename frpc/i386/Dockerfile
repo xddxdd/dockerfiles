@@ -5,10 +5,10 @@ RUN apk --no-cache add wget tar \
   && wget --no-check-certificate https://github.com/fatedier/frp/releases/download/v${FRP_VER}/frp_${FRP_VER}_linux_386.tar.gz \
   && tar xf frp_${FRP_VER}_linux_386.tar.gz \
   && rm frp_${FRP_VER}_linux_386.tar.gz \
-  && mv frp_${FRP_VER}_linux_386/frps /usr/bin/ \
-  && mv frp_${FRP_VER}_linux_386/frps.ini /frp/ \
+  && mv frp_${FRP_VER}_linux_386/frpc /usr/bin/ \
+  && mv frp_${FRP_VER}_linux_386/frpc.ini /frp/ \
   && rm -rf frp_${FRP_VER}_linux_386 \
-  && chmod +x /usr/bin/frps \
+  && chmod +x /usr/bin/frpc \
   && apk del --purge wget tar
 WORKDIR /frp
-ENTRYPOINT ["/usr/bin/frps"]
+ENTRYPOINT ["/usr/bin/frpc"]
