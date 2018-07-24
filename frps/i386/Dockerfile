@@ -1,4 +1,4 @@
-FROM alpine
+FROM multiarch/alpine:i386-edge
 ENV FRP_VER=0.20.0
 RUN apk --no-cache add wget tar \
   && mkdir /frp \
