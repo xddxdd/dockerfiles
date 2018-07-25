@@ -16,8 +16,8 @@ install:
 
 script:
   - |
-    cd $IMAGE_NAME/$IMAGE_ARCH
-    docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH .
+    cd $IMAGE_NAME
+    docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH -f Dockerfile.$IMAGE_ARCH .
 
 after_script:
   - |
