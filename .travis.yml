@@ -1,13 +1,25 @@
 sudo: required
 services:
   - docker
-
+language: bash
 env:
-  - IMAGE_ARCH=amd64
-  - IMAGE_ARCH=i386
-  - IMAGE_ARCH=arm32v7
-  - IMAGE_ARCH=arm64v8
-  - IMAGE_NAME=frpc
-  - IMAGE_NAME=frps
+  - IMAGE_NAME=nginx  IMAGE_ARCH=amd64
+  - IMAGE_NAME=nginx  IMAGE_ARCH=i386
+  - IMAGE_NAME=nginx  IMAGE_ARCH=arm32v7
+  - IMAGE_NAME=nginx  IMAGE_ARCH=arm64v8
 
-script: echo $IMAGE_ARCH $IMAGE_NAME
+install:
+#  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+#  - docker pull $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH || true
+
+script:
+  - |
+    cd $IMAGE_NAME/$IMAGE_ARCH
+    docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH .
+
+after_script:
+  - |
+    if [ $IMAGE_ARCH = "amd64" ]; then
+      docker tag $DOCKER_USERNAME/$IMAGE_NAME:amd64 $DOCKER_USERNAME/$IMAGE_NAME:latest
+    fi
+    docker images
