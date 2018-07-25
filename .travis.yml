@@ -19,10 +19,10 @@ env:
   - IMAGE_NAME=nyancat  IMAGE_ARCH=i386
   - IMAGE_NAME=nyancat  IMAGE_ARCH=arm32v7
   - IMAGE_NAME=nyancat  IMAGE_ARCH=arm64v8
-  - IMAGE_NAME=php7-fpm     IMAGE_ARCH=amd64
-  - IMAGE_NAME=php7-fpm     IMAGE_ARCH=i386
-  - IMAGE_NAME=php7-fpm     IMAGE_ARCH=arm32v7
-  - IMAGE_NAME=php7-fpm     IMAGE_ARCH=arm64v8
+  - IMAGE_NAME=php7-fpm IMAGE_ARCH=amd64
+  - IMAGE_NAME=php7-fpm IMAGE_ARCH=i386
+  - IMAGE_NAME=php7-fpm IMAGE_ARCH=arm32v7
+  - IMAGE_NAME=php7-fpm IMAGE_ARCH=arm64v8
 
 install:
   - |
