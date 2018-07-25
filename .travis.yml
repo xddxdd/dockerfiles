@@ -4,7 +4,6 @@ services:
 language: bash
 env:
   - IMAGE_NAME=nginx  IMAGE_ARCH=amd64
-  - IMAGE_NAME=nginx  IMAGE_ARCH=i386
   - IMAGE_NAME=nginx  IMAGE_ARCH=arm32v7
   - IMAGE_NAME=nginx  IMAGE_ARCH=arm64v8
 
