@@ -1,0 +1,13 @@
+sudo: required
+services:
+  - docker
+
+env:
+  - IMAGE_ARCH=amd64
+  - IMAGE_ARCH=i386
+  - IMAGE_ARCH=arm32v7
+  - IMAGE_ARCH=arm64v8
+  - IMAGE_NAME=frpc
+  - IMAGE_NAME=frps
+
+script: echo $IMAGE_ARCH $IMAGE_NAME
