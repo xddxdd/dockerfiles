@@ -1,5 +1,5 @@
-FROM multiarch/alpine:i386-edge
-MAINTAINER Lan Tian "lantian@lantian.pub"
+FROM alpine
+LABEL Lan Tian "lantian@lantian.pub"
 ENV NGINX_VERSION=1.15.2 OPENSSL_VERSION=OpenSSL_1_1_1-pre8
 RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-dev pcre-dev unzip jemalloc-dev patch linux-headers \
     && cd /tmp \
@@ -35,10 +35,10 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-de
        --add-module=/tmp/ngx_brotli \
        --add-module=/tmp/headers-more-nginx-module \
        --with-openssl=/tmp/openssl-${OPENSSL_VERSION} \
-       --with-openssl-opt='no-tests enable-tls1_3 -ljemalloc' \
+       --with-openssl-opt='no-tests enable-ec_nistp_64_gcc_128 enable-tls1_3 -ljemalloc' \
        --with-ld-opt="-ljemalloc" \
        --with-cc-opt="-O3 -flto -fPIC -fPIE -fstack-protector-strong -Wformat -Werror=format-security -Wno-deprecated-declarations -Wno-strict-aliasing" \
-    && make -j2 \
+    && make -j4 \
     && make install \
     && apk del build-base git autoconf automake wget tar unzip patch linux-headers || true \
     && cd / && rm -rf /tmp/* \
