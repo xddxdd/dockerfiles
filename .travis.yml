@@ -3,15 +3,32 @@ services:
   - docker
 language: bash
 env:
-  - IMAGE_NAME=nginx  IMAGE_ARCH=amd64
-  - IMAGE_NAME=nginx  IMAGE_ARCH=arm32v7
-  - IMAGE_NAME=nginx  IMAGE_ARCH=arm64v8
+  - IMAGE_NAME=frpc     IMAGE_ARCH=amd64
+  - IMAGE_NAME=frpc     IMAGE_ARCH=i386
+  - IMAGE_NAME=frpc     IMAGE_ARCH=arm32v7
+  - IMAGE_NAME=frpc     IMAGE_ARCH=arm64v8
+  - IMAGE_NAME=frps     IMAGE_ARCH=amd64
+  - IMAGE_NAME=frps     IMAGE_ARCH=i386
+  - IMAGE_NAME=frps     IMAGE_ARCH=arm32v7
+  - IMAGE_NAME=frps     IMAGE_ARCH=arm64v8
+  - IMAGE_NAME=nginx    IMAGE_ARCH=amd64
+# - IMAGE_NAME=nginx    IMAGE_ARCH=i386
+  - IMAGE_NAME=nginx    IMAGE_ARCH=arm32v7
+  - IMAGE_NAME=nginx    IMAGE_ARCH=arm64v8
+  - IMAGE_NAME=nyancat  IMAGE_ARCH=amd64
+  - IMAGE_NAME=nyancat  IMAGE_ARCH=i386
+  - IMAGE_NAME=nyancat  IMAGE_ARCH=arm32v7
+  - IMAGE_NAME=nyancat  IMAGE_ARCH=arm64v8
+  - IMAGE_NAME=php7-fpm     IMAGE_ARCH=amd64
+  - IMAGE_NAME=php7-fpm     IMAGE_ARCH=i386
+  - IMAGE_NAME=php7-fpm     IMAGE_ARCH=arm32v7
+  - IMAGE_NAME=php7-fpm     IMAGE_ARCH=arm64v8
 
 install:
   - |
     docker run --rm --privileged multiarch/qemu-user-static:register --reset
-#    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-#    docker pull $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH || true
+    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    docker pull $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH || true
 
 script:
   - |
@@ -20,7 +37,8 @@ script:
 
 after_script:
   - |
+    docker push $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH
     if [ $IMAGE_ARCH = "amd64" ]; then
-      docker tag $DOCKER_USERNAME/$IMAGE_NAME:amd64 $DOCKER_USERNAME/$IMAGE_NAME:latest
+      docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:latest
+      docker push $DOCKER_USERNAME/$IMAGE_NAME:latest
     fi
-    docker images
