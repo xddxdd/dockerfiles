@@ -38,7 +38,7 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-de
        --with-openssl-opt='no-tests enable-tls1_3 -ljemalloc' \
        --with-ld-opt="-ljemalloc" \
        --with-cc-opt="-O3 -flto -fPIC -fPIE -fstack-protector-strong -Wformat -Werror=format-security -Wno-deprecated-declarations -Wno-strict-aliasing" \
-    && travis_wait 60 make -j4 \
+    && make -j4 \
     && make install \
     && apk del build-base git autoconf automake wget tar unzip patch linux-headers || true \
     && cd / && rm -rf /tmp/* \
