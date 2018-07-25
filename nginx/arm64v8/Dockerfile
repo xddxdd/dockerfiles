@@ -1,6 +1,6 @@
 FROM multiarch/alpine:aarch64-edge
 MAINTAINER Lan Tian "lantian@lantian.pub"
-ENV NGINX_VERSION=1.15.1 OPENSSL_VERSION=OpenSSL_1_1_1-pre8
+ENV NGINX_VERSION=1.15.2 OPENSSL_VERSION=OpenSSL_1_1_1-pre8
 RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-dev pcre-dev unzip jemalloc-dev patch linux-headers \
     && cd /tmp \
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
@@ -35,10 +35,10 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-de
        --add-module=/tmp/ngx_brotli \
        --add-module=/tmp/headers-more-nginx-module \
        --with-openssl=/tmp/openssl-${OPENSSL_VERSION} \
-       --with-openssl-opt='enable-ec_nistp_64_gcc_128 enable-weak-ssl-ciphers enable-tls1_3 -ljemalloc' \
+       --with-openssl-opt='no-tests enable-ec_nistp_64_gcc_128 enable-weak-ssl-ciphers enable-tls1_3 -ljemalloc' \
        --with-ld-opt="-ljemalloc" \
        --with-cc-opt="-O3 -flto -fPIC -fPIE -fstack-protector-strong -Wformat -Werror=format-security -Wno-deprecated-declarations -Wno-strict-aliasing" \
-    && make \
+    && make -j2 \
     && make install \
     && apk del build-base git autoconf automake wget tar unzip patch linux-headers || true \
     && cd / && rm -rf /tmp/* \
