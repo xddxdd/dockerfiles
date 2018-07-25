@@ -33,7 +33,7 @@ install:
 script:
   - |
     cd $IMAGE_NAME
-    docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH -f Dockerfile.$IMAGE_ARCH .
+    travis_wait 60 docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH -f Dockerfile.$IMAGE_ARCH .
 
 after_script:
   - |
