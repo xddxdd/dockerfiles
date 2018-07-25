@@ -35,7 +35,7 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-de
        --add-module=/tmp/ngx_brotli \
        --add-module=/tmp/headers-more-nginx-module \
        --with-openssl=/tmp/openssl-${OPENSSL_VERSION} \
-       --with-openssl-opt='no-tests enable-weak-ssl-ciphers enable-tls1_3 -ljemalloc' \
+       --with-openssl-opt='no-tests enable-tls1_3 -ljemalloc' \
        --with-ld-opt="-ljemalloc" \
        --with-cc-opt="-O3 -flto -fPIC -fPIE -fstack-protector-strong -Wformat -Werror=format-security -Wno-deprecated-declarations -Wno-strict-aliasing" \
     && make -j2 \
