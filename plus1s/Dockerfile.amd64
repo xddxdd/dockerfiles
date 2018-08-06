@@ -1,0 +1,12 @@
+FROM alpine
+LABEL Lan Tian "lantian@lantian.pub"
+RUN apk --no-cache add git musl-dev go \
+    && cd /tmp \
+    && git clone https://github.com/HFO4/plus1s.live.git \
+      && cd plus1s.live && go build \
+      && cp plus1s.live /usr/bin \
+      && cp -r pic /pic \
+      && cd .. && rm -rf plus1s.live \
+    && apk del --purge git musl-dev go
+
+ENTRYPOINT /usr/bin/plus1s.live
