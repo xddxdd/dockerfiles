@@ -32,7 +32,6 @@ install:
   - |
     docker run --rm --privileged multiarch/qemu-user-static:register --reset
     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    docker pull $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH || true
 
 script:
   - |
