@@ -1,13 +1,8 @@
 FROM multiarch/alpine:i386-edge
 LABEL Lan Tian "lantian@lantian.pub"
-RUN apk --no-cache add git musl-dev go \
-    && cd /tmp \
+RUN apk --no-cache add git python \
     && git clone https://github.com/HFO4/plus1s.live.git \
-      && cd plus1s.live \
-      && CGO_ENABLED=1 go build \
-      && cp plus1s.live /usr/bin \
-      && cp -r pic /pic \
-      && cd .. && rm -rf plus1s.live \
-    && apk del --purge git musl-dev go
+    && apk del --purge git
 
-ENTRYPOINT /usr/bin/plus1s.live
+WORKDIR /plus1s.live/
+ENTRYPOINT python stream.py
