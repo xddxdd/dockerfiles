@@ -1,0 +1,5 @@
+FROM multiarch/alpine:aarch64-edge
+LABEL Lan Tian "lantian@lantian.pub"
+ADD route.sh /
+RUN chmod +x /route.sh
+ENTRYPOINT /route.sh
