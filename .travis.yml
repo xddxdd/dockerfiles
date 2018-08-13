@@ -22,23 +22,24 @@ install:
 
 script:
   - |
+    cd $IMAGE_NAME
     if [ $IMAGE_ARCH ]
     then
       # Determined IMAGE_ARCH
-      cd $IMAGE_NAME
       travis_wait 60 docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH -f Dockerfile.$IMAGE_ARCH .
+      docker push $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH
+      if [ $IMAGE_ARCH = "amd64" ]; then
+        docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:latest
+        docker push $DOCKER_USERNAME/$IMAGE_NAME:latest
+      fi
     else
-      cd $IMAGE_NAME
       for IMAGE_ARCH in $(ls -1 Dockerfile.* | cut -d'.' -f2)
       do
         travis_wait 60 docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH -f Dockerfile.$IMAGE_ARCH .
+        docker push $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH
+        if [ $IMAGE_ARCH = "amd64" ]; then
+          docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:latest
+          docker push $DOCKER_USERNAME/$IMAGE_NAME:latest
+        fi
       done
-    fi
-
-after_script:
-  - |
-    docker push $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH
-    if [ $IMAGE_ARCH = "amd64" ]; then
-      docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:latest
-      docker push $DOCKER_USERNAME/$IMAGE_NAME:latest
     fi
