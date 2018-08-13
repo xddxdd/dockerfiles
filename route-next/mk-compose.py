@@ -18,7 +18,7 @@ class MakeComposeYml:
         target_split = target.split('.')
         if first_split[0:3] != target_split[0:3]:
             raise ValueError("First and target not in same subnet")
-        if first_split[3] >= target_split[3]:
+        if int(first_split[3]) >= int(target_split[3]):
             raise ValueError("First IP comes after target IP")
         ips = []
         new_ip = first_split
@@ -34,7 +34,7 @@ class MakeComposeYml:
     def writeContainer(self, i, ip):
         body = '''
   routing%i:
-    image: xddxdd/route-img:latest
+    image: xddxdd/route-next:latest
     container_name: routing%i
     restart: always
     cap_add:
@@ -42,7 +42,7 @@ class MakeComposeYml:
     environment:
       - TARGET_IP=%s
     networks:
-      default:
+      routing:
         ipv4_address: %s
 '''
         self.f.write(body % (i, i, self.args.target, ip))
@@ -50,7 +50,7 @@ class MakeComposeYml:
     def writeFooter(self):
         footer = '''
 networks:
-  default:
+  routing:
     driver: bridge
     ipam:
       driver: default
