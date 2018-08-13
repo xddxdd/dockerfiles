@@ -1,0 +1,70 @@
+version: "2.1"
+services:
+  routing1:
+    image: xddxdd/route-next:latest
+    container_name: routing1
+    restart: always
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - TARGET_IP=172.22.76.102
+    networks:
+      routing:
+        ipv4_address: 172.22.76.98
+
+  routing2:
+    image: xddxdd/route-next:latest
+    container_name: routing2
+    restart: always
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - TARGET_IP=172.22.76.102
+    networks:
+      routing:
+        ipv4_address: 172.22.76.99
+
+  routing3:
+    image: xddxdd/route-next:latest
+    container_name: routing3
+    restart: always
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - TARGET_IP=172.22.76.102
+    networks:
+      routing:
+        ipv4_address: 172.22.76.100
+
+  routing4:
+    image: xddxdd/route-next:latest
+    container_name: routing4
+    restart: always
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - TARGET_IP=172.22.76.102
+    networks:
+      routing:
+        ipv4_address: 172.22.76.101
+
+  routing5:
+    image: xddxdd/route-next:latest
+    container_name: routing5
+    restart: always
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - TARGET_IP=172.22.76.102
+    networks:
+      routing:
+        ipv4_address: 172.22.76.102
+
+networks:
+  routing:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.22.76.96/29
+        gateway: 172.22.76.97
