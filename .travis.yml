@@ -4,16 +4,16 @@ services:
 language: bash
 env:
   - IMAGE_NAME=dnsmasq
-  - IMAGE_NAME=frpc
-  - IMAGE_NAME=frps
-  # Split nginx build to speed up
-  - IMAGE_NAME=nginx      IMAGE_ARCH=amd64
-  - IMAGE_NAME=nginx      IMAGE_ARCH=arm32v7
-  - IMAGE_NAME=nginx      IMAGE_ARCH=arm64v8
-  - IMAGE_NAME=nyancat
-  - IMAGE_NAME=php7-fpm
-  - IMAGE_NAME=route-next
-  - IMAGE_NAME=plus1s
+  # - IMAGE_NAME=frpc
+  # - IMAGE_NAME=frps
+  # # Split nginx build to speed up
+  # - IMAGE_NAME=nginx      IMAGE_ARCH=amd64
+  # - IMAGE_NAME=nginx      IMAGE_ARCH=arm32v7
+  # - IMAGE_NAME=nginx      IMAGE_ARCH=arm64v8
+  # - IMAGE_NAME=nyancat
+  # - IMAGE_NAME=php7-fpm
+  # - IMAGE_NAME=route-next
+  # - IMAGE_NAME=plus1s
 
 install:
   - |
@@ -27,12 +27,13 @@ script:
       IMAGE_ARCH=$(ls -1 Dockerfile.* | cut -d'.' -f2)
     fi
   - |
-    for IMAGE_ARCH in $IMAGE_ARCH
+    for THIS_ARCH in $IMAGE_ARCH
     do
-      travis_wait 60 docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH -f Dockerfile.$IMAGE_ARCH .
-      docker push $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH
-      if [ $IMAGE_ARCH = "amd64" ]; then
-        docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:latest
-        docker push $DOCKER_USERNAME/$IMAGE_NAME:latest
+      travis_wait 60 docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$THIS_ARCH -f Dockerfile.$THIS_ARCH .
+      docker tag $DOCKER_USERNAME/$IMAGE_NAME:$THIS_ARCH $DOCKER_USERNAME/$IMAGE_NAME:$THIS_ARCH-build$TRAVIS_BUILD_NUMBER
+      if [ $THIS_ARCH = "amd64" ]; then
+        docker tag $DOCKER_USERNAME/$IMAGE_NAME:$THIS_ARCH $DOCKER_USERNAME/$IMAGE_NAME:latest
+        docker tag $DOCKER_USERNAME/$IMAGE_NAME:$THIS_ARCH $DOCKER_USERNAME/$IMAGE_NAME:build$TRAVIS_BUILD_NUMBER
       fi
     done
+  - docker push $DOCKER_USERNAME/$IMAGE_NAME
