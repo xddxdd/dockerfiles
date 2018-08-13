@@ -3,38 +3,17 @@ services:
   - docker
 language: bash
 env:
-#   - IMAGE_NAME=dnsmasq    IMAGE_ARCH=amd64
-#   - IMAGE_NAME=dnsmasq    IMAGE_ARCH=i386
-#   - IMAGE_NAME=dnsmasq    IMAGE_ARCH=arm32v7
-#   - IMAGE_NAME=dnsmasq    IMAGE_ARCH=arm64v8
-#   - IMAGE_NAME=frpc       IMAGE_ARCH=amd64
-#   - IMAGE_NAME=frpc       IMAGE_ARCH=i386
-#   - IMAGE_NAME=frpc       IMAGE_ARCH=arm32v7
-#   - IMAGE_NAME=frpc       IMAGE_ARCH=arm64v8
-#   - IMAGE_NAME=frps       IMAGE_ARCH=amd64
-#   - IMAGE_NAME=frps       IMAGE_ARCH=i386
-#   - IMAGE_NAME=frps       IMAGE_ARCH=arm32v7
-#   - IMAGE_NAME=frps       IMAGE_ARCH=arm64v8
-#   - IMAGE_NAME=nginx      IMAGE_ARCH=amd64
-#   - IMAGE_NAME=nginx      IMAGE_ARCH=i386
-#   - IMAGE_NAME=nginx      IMAGE_ARCH=arm32v7
-#   - IMAGE_NAME=nginx      IMAGE_ARCH=arm64v8
-#   - IMAGE_NAME=nyancat    IMAGE_ARCH=amd64
-#   - IMAGE_NAME=nyancat    IMAGE_ARCH=i386
-#   - IMAGE_NAME=nyancat    IMAGE_ARCH=arm32v7
-#   - IMAGE_NAME=nyancat    IMAGE_ARCH=arm64v8
-  - IMAGE_NAME=php7-fpm   IMAGE_ARCH=amd64
-  - IMAGE_NAME=php7-fpm   IMAGE_ARCH=i386
-  - IMAGE_NAME=php7-fpm   IMAGE_ARCH=arm32v7
-  - IMAGE_NAME=php7-fpm   IMAGE_ARCH=arm64v8
-#   - IMAGE_NAME=route-next IMAGE_ARCH=amd64
-#   - IMAGE_NAME=route-next IMAGE_ARCH=i386
-#   - IMAGE_NAME=route-next IMAGE_ARCH=arm32v7
-#   - IMAGE_NAME=route-next IMAGE_ARCH=arm64v8
-#   - IMAGE_NAME=plus1s     IMAGE_ARCH=amd64
-#   - IMAGE_NAME=plus1s     IMAGE_ARCH=i386
-#   - IMAGE_NAME=plus1s     IMAGE_ARCH=arm32v7
-#   - IMAGE_NAME=plus1s     IMAGE_ARCH=arm64v8
+  - IMAGE_NAME=dnsmasq
+  - IMAGE_NAME=frpc
+  - IMAGE_NAME=frps
+  # Split nginx build to speed up
+  - IMAGE_NAME=nginx      IMAGE_ARCH=amd64
+  - IMAGE_NAME=nginx      IMAGE_ARCH=arm32v7
+  - IMAGE_NAME=nginx      IMAGE_ARCH=arm64v8
+  - IMAGE_NAME=nyancat
+  - IMAGE_NAME=php7-fpm
+  - IMAGE_NAME=route-next
+  - IMAGE_NAME=plus1s
 
 install:
   - |
@@ -42,14 +21,18 @@ install:
     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
 script:
+  - cd $IMAGE_NAME
   - |
-    cd $IMAGE_NAME
-    travis_wait 60 docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH -f Dockerfile.$IMAGE_ARCH .
-
-after_script:
-  - |
-    docker push $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH
-    if [ $IMAGE_ARCH = "amd64" ]; then
-      docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:latest
-      docker push $DOCKER_USERNAME/$IMAGE_NAME:latest
+    if [ ! $IMAGE_ARCH ]; then
+      IMAGE_ARCH=$(ls -1 Dockerfile.* | cut -d'.' -f2)
     fi
+  - |
+    for IMAGE_ARCH in $IMAGE_ARCH
+    do
+      travis_wait 60 docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH -f Dockerfile.$IMAGE_ARCH .
+      docker push $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH
+      if [ $IMAGE_ARCH = "amd64" ]; then
+        docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:latest
+        docker push $DOCKER_USERNAME/$IMAGE_NAME:latest
+      fi
+    done
