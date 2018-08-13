@@ -3,38 +3,38 @@ services:
   - docker
 language: bash
 env:
-  - IMAGE_NAME=dnsmasq    IMAGE_ARCH=amd64
-  - IMAGE_NAME=dnsmasq    IMAGE_ARCH=i386
-  - IMAGE_NAME=dnsmasq    IMAGE_ARCH=arm32v7
-  - IMAGE_NAME=dnsmasq    IMAGE_ARCH=arm64v8
-  - IMAGE_NAME=frpc       IMAGE_ARCH=amd64
-  - IMAGE_NAME=frpc       IMAGE_ARCH=i386
-  - IMAGE_NAME=frpc       IMAGE_ARCH=arm32v7
-  - IMAGE_NAME=frpc       IMAGE_ARCH=arm64v8
-  - IMAGE_NAME=frps       IMAGE_ARCH=amd64
-  - IMAGE_NAME=frps       IMAGE_ARCH=i386
-  - IMAGE_NAME=frps       IMAGE_ARCH=arm32v7
-  - IMAGE_NAME=frps       IMAGE_ARCH=arm64v8
-  - IMAGE_NAME=nginx      IMAGE_ARCH=amd64
-# - IMAGE_NAME=nginx      IMAGE_ARCH=i386
-  - IMAGE_NAME=nginx      IMAGE_ARCH=arm32v7
-  - IMAGE_NAME=nginx      IMAGE_ARCH=arm64v8
-  - IMAGE_NAME=nyancat    IMAGE_ARCH=amd64
-  - IMAGE_NAME=nyancat    IMAGE_ARCH=i386
-  - IMAGE_NAME=nyancat    IMAGE_ARCH=arm32v7
-  - IMAGE_NAME=nyancat    IMAGE_ARCH=arm64v8
+#   - IMAGE_NAME=dnsmasq    IMAGE_ARCH=amd64
+#   - IMAGE_NAME=dnsmasq    IMAGE_ARCH=i386
+#   - IMAGE_NAME=dnsmasq    IMAGE_ARCH=arm32v7
+#   - IMAGE_NAME=dnsmasq    IMAGE_ARCH=arm64v8
+#   - IMAGE_NAME=frpc       IMAGE_ARCH=amd64
+#   - IMAGE_NAME=frpc       IMAGE_ARCH=i386
+#   - IMAGE_NAME=frpc       IMAGE_ARCH=arm32v7
+#   - IMAGE_NAME=frpc       IMAGE_ARCH=arm64v8
+#   - IMAGE_NAME=frps       IMAGE_ARCH=amd64
+#   - IMAGE_NAME=frps       IMAGE_ARCH=i386
+#   - IMAGE_NAME=frps       IMAGE_ARCH=arm32v7
+#   - IMAGE_NAME=frps       IMAGE_ARCH=arm64v8
+#   - IMAGE_NAME=nginx      IMAGE_ARCH=amd64
+#   - IMAGE_NAME=nginx      IMAGE_ARCH=i386
+#   - IMAGE_NAME=nginx      IMAGE_ARCH=arm32v7
+#   - IMAGE_NAME=nginx      IMAGE_ARCH=arm64v8
+#   - IMAGE_NAME=nyancat    IMAGE_ARCH=amd64
+#   - IMAGE_NAME=nyancat    IMAGE_ARCH=i386
+#   - IMAGE_NAME=nyancat    IMAGE_ARCH=arm32v7
+#   - IMAGE_NAME=nyancat    IMAGE_ARCH=arm64v8
   - IMAGE_NAME=php7-fpm   IMAGE_ARCH=amd64
   - IMAGE_NAME=php7-fpm   IMAGE_ARCH=i386
   - IMAGE_NAME=php7-fpm   IMAGE_ARCH=arm32v7
   - IMAGE_NAME=php7-fpm   IMAGE_ARCH=arm64v8
-  - IMAGE_NAME=route-next IMAGE_ARCH=amd64
-  - IMAGE_NAME=route-next IMAGE_ARCH=i386
-  - IMAGE_NAME=route-next IMAGE_ARCH=arm32v7
-  - IMAGE_NAME=route-next IMAGE_ARCH=arm64v8
-  - IMAGE_NAME=plus1s     IMAGE_ARCH=amd64
-  - IMAGE_NAME=plus1s     IMAGE_ARCH=i386
-  - IMAGE_NAME=plus1s     IMAGE_ARCH=arm32v7
-  - IMAGE_NAME=plus1s     IMAGE_ARCH=arm64v8
+#   - IMAGE_NAME=route-next IMAGE_ARCH=amd64
+#   - IMAGE_NAME=route-next IMAGE_ARCH=i386
+#   - IMAGE_NAME=route-next IMAGE_ARCH=arm32v7
+#   - IMAGE_NAME=route-next IMAGE_ARCH=arm64v8
+#   - IMAGE_NAME=plus1s     IMAGE_ARCH=amd64
+#   - IMAGE_NAME=plus1s     IMAGE_ARCH=i386
+#   - IMAGE_NAME=plus1s     IMAGE_ARCH=arm32v7
+#   - IMAGE_NAME=plus1s     IMAGE_ARCH=arm64v8
 
 install:
   - |
