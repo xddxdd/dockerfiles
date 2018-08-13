@@ -3,38 +3,17 @@ services:
   - docker
 language: bash
 env:
-#   - IMAGE_NAME=dnsmasq    IMAGE_ARCH=amd64
-#   - IMAGE_NAME=dnsmasq    IMAGE_ARCH=i386
-#   - IMAGE_NAME=dnsmasq    IMAGE_ARCH=arm32v7
-#   - IMAGE_NAME=dnsmasq    IMAGE_ARCH=arm64v8
-#   - IMAGE_NAME=frpc       IMAGE_ARCH=amd64
-#   - IMAGE_NAME=frpc       IMAGE_ARCH=i386
-#   - IMAGE_NAME=frpc       IMAGE_ARCH=arm32v7
-#   - IMAGE_NAME=frpc       IMAGE_ARCH=arm64v8
-#   - IMAGE_NAME=frps       IMAGE_ARCH=amd64
-#   - IMAGE_NAME=frps       IMAGE_ARCH=i386
-#   - IMAGE_NAME=frps       IMAGE_ARCH=arm32v7
-#   - IMAGE_NAME=frps       IMAGE_ARCH=arm64v8
-#   - IMAGE_NAME=nginx      IMAGE_ARCH=amd64
-#   - IMAGE_NAME=nginx      IMAGE_ARCH=i386
-#   - IMAGE_NAME=nginx      IMAGE_ARCH=arm32v7
-#   - IMAGE_NAME=nginx      IMAGE_ARCH=arm64v8
-#   - IMAGE_NAME=nyancat    IMAGE_ARCH=amd64
-#   - IMAGE_NAME=nyancat    IMAGE_ARCH=i386
-#   - IMAGE_NAME=nyancat    IMAGE_ARCH=arm32v7
-#   - IMAGE_NAME=nyancat    IMAGE_ARCH=arm64v8
-  - IMAGE_NAME=php7-fpm   IMAGE_ARCH=amd64
-  - IMAGE_NAME=php7-fpm   IMAGE_ARCH=i386
-  - IMAGE_NAME=php7-fpm   IMAGE_ARCH=arm32v7
-  - IMAGE_NAME=php7-fpm   IMAGE_ARCH=arm64v8
-#   - IMAGE_NAME=route-next IMAGE_ARCH=amd64
-#   - IMAGE_NAME=route-next IMAGE_ARCH=i386
-#   - IMAGE_NAME=route-next IMAGE_ARCH=arm32v7
-#   - IMAGE_NAME=route-next IMAGE_ARCH=arm64v8
-#   - IMAGE_NAME=plus1s     IMAGE_ARCH=amd64
-#   - IMAGE_NAME=plus1s     IMAGE_ARCH=i386
-#   - IMAGE_NAME=plus1s     IMAGE_ARCH=arm32v7
-#   - IMAGE_NAME=plus1s     IMAGE_ARCH=arm64v8
+  - IMAGE_NAME=dnsmasq
+  - IMAGE_NAME=frpc
+  - IMAGE_NAME=frps
+  # Split nginx build to speed up
+  - IMAGE_NAME=nginx      IMAGE_ARCH=amd64
+  - IMAGE_NAME=nginx      IMAGE_ARCH=arm32v7
+  - IMAGE_NAME=nginx      IMAGE_ARCH=arm64v8
+  - IMAGE_NAME=nyancat
+  - IMAGE_NAME=php7-fpm
+  - IMAGE_NAME=route-next
+  - IMAGE_NAME=plus1s
 
 install:
   - |
@@ -43,8 +22,18 @@ install:
 
 script:
   - |
-    cd $IMAGE_NAME
-    travis_wait 60 docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH -f Dockerfile.$IMAGE_ARCH .
+    if [ $IMAGE_ARCH ]
+    then
+      # Determined IMAGE_ARCH
+      cd $IMAGE_NAME
+      travis_wait 60 docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH -f Dockerfile.$IMAGE_ARCH .
+    else
+      cd $IMAGE_NAME
+      for IMAGE_ARCH in $(ls -1 Dockerfile.* | cut -d'.' -f2)
+      do
+        travis_wait 60 docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH -f Dockerfile.$IMAGE_ARCH .
+      done
+    fi
 
 after_script:
   - |
