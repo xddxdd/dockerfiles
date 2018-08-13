@@ -21,25 +21,18 @@ install:
     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
 script:
+  - cd $IMAGE_NAME
   - |
-    cd $IMAGE_NAME
-    if [ $IMAGE_ARCH ]
-    then
-      # Determined IMAGE_ARCH
+    if [ ! $IMAGE_ARCH ]; then
+      IMAGE_ARCH=$(ls -1 Dockerfile.* | cut -d'.' -f2)
+    fi
+  - |
+    for IMAGE_ARCH in $IMAGE_ARCH
+    do
       travis_wait 60 docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH -f Dockerfile.$IMAGE_ARCH .
       docker push $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH
       if [ $IMAGE_ARCH = "amd64" ]; then
         docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:latest
         docker push $DOCKER_USERNAME/$IMAGE_NAME:latest
       fi
-    else
-      for IMAGE_ARCH in $(ls -1 Dockerfile.* | cut -d'.' -f2)
-      do
-        travis_wait 60 docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH -f Dockerfile.$IMAGE_ARCH .
-        docker push $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH
-        if [ $IMAGE_ARCH = "amd64" ]; then
-          docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:latest
-          docker push $DOCKER_USERNAME/$IMAGE_NAME:latest
-        fi
-      done
-    fi
+    done
