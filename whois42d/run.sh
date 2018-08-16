@@ -1,7 +1,7 @@
 #!/bin/sh
 cd /
 # Initialize git repository
-if [ ! -e /registry ]; then
+if [ ! -e /registry/.git ]; then
     git clone http://git.dn42.us/dn42/registry.git
 fi
 # Start whois42d in background
