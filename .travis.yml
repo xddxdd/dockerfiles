@@ -14,6 +14,7 @@ env:
   - IMAGE_NAME=php7-fpm
   - IMAGE_NAME=route-next
   - IMAGE_NAME=plus1s
+  - IMAGE_NAME=whois42d
 
 install:
   - |

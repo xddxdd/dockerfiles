@@ -1,0 +1,10 @@
+FROM multiarch/alpine:i386-edge
+LABEL Lan Tian "lantian@lantian.pub"
+RUN apk --no-cache add go git musl-dev \
+    && go get github.com/Mic92/whois42d \
+    && cp /root/go/bin/whois42d /whois42d \
+    && rm -rf /root/go \
+    && apk --no-cache del go musl-dev
+ADD run.sh /
+RUN chmod +x /run.sh
+ENTRYPOINT /run.sh
