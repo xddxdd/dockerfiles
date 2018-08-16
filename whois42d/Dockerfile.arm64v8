@@ -1,7 +1,6 @@
 FROM multiarch/alpine:aarch64-edge
 LABEL Lan Tian "lantian@lantian.pub"
-RUN chmod +x /run.sh \
-    && apk --no-cache add go git musl-dev \
+RUN apk --no-cache add go git musl-dev \
     && go get github.com/Mic92/whois42d \
     && cp /root/go/bin/whois42d /whois42d \
     && rm -rf /root/go \
