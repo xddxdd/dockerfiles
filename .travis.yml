@@ -4,7 +4,7 @@ services:
 language: bash
 cache:
   directories:
-    - /cache
+    - $HOME/docker-cache
 env:
   - IMAGE_NAME=dnsmasq
   - IMAGE_NAME=frpc
