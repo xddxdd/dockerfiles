@@ -1,6 +1,6 @@
 FROM multiarch/alpine:armhf-edge
 LABEL Lan Tian "lantian@lantian.pub"
-ENV NGINX_VERSION=1.15.2 OPENSSL_VERSION=OpenSSL_1_1_1-pre8
+ENV NGINX_VERSION=1.15.2 OPENSSL_VERSION=OpenSSL_1_1_1-pre9
 RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-dev pcre-dev unzip jemalloc-dev patch linux-headers \
     && cd /tmp \
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
@@ -14,7 +14,7 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-de
     && wget -q https://github.com/openssl/openssl/archive/${OPENSSL_VERSION}.zip \
       && unzip -q ${OPENSSL_VERSION}.zip \
       && cd /tmp/openssl-${OPENSSL_VERSION} \
-      && wget -qO- https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-pre8_ciphers.patch | patch -p1 \
+      && wget -qO- https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-pre9_ciphers.patch | patch -p1 \
       && cd /tmp \
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
     && cd /tmp/nginx-${NGINX_VERSION} \
