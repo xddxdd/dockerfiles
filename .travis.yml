@@ -2,9 +2,6 @@ sudo: required
 services:
   - docker
 language: bash
-cache:
-  directories:
-    - $HOME/docker-cache
 env:
   - IMAGE_NAME=dnsmasq
   - IMAGE_NAME=frpc
@@ -27,10 +24,6 @@ install:
   - TRAVIS_ALLOW_FAILURE=false
   - docker run --rm --privileged multiarch/qemu-user-static:register --reset
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - |
-    if [ -e $HOME/docker-cache/$DOCKER_USERNAME-$IMAGE_NAME-$THIS_ARCH.tar.gz ]; then
-      docker load -i $HOME/docker-cache/$DOCKER_USERNAME-$IMAGE_NAME-$THIS_ARCH.tar.gz
-    fi
 
 script:
   - cd $IMAGE_NAME
@@ -47,6 +40,5 @@ script:
         docker tag $DOCKER_USERNAME/$IMAGE_NAME:$THIS_ARCH $DOCKER_USERNAME/$IMAGE_NAME:latest
         docker tag $DOCKER_USERNAME/$IMAGE_NAME:$THIS_ARCH $DOCKER_USERNAME/$IMAGE_NAME:build$TRAVIS_BUILD_NUMBER
       fi
-      docker save $DOCKER_USERNAME/$IMAGE_NAME:$THIS_ARCH | gzip -c > $HOME/docker-cache/$DOCKER_USERNAME-$IMAGE_NAME-$THIS_ARCH.tar.gz
     done
   - docker push $DOCKER_USERNAME/$IMAGE_NAME
