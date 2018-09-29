@@ -1,7 +1,7 @@
 FROM multiarch/alpine:armhf-edge
 LABEL Lan Tian "lantian@lantian.pub"
-ENV NGINX_VERSION=1.15.3 OPENSSL_VERSION=1.1.1
-RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-dev pcre-dev unzip jemalloc-dev patch linux-headers \
+ENV NGINX_VERSION=1.15.4 OPENSSL_VERSION=1.1.1
+RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-dev pcre-dev unzip jemalloc-dev patch linux-headers openldap-dev \
     && cd /tmp \
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
       && tar xf nginx-${NGINX_VERSION}.tar.gz \
@@ -16,6 +16,7 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-de
       && wget -qO- https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1_ciphers.patch | patch -p1 \
       && cd /tmp \
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
+    && git clone https://github.com/kvspb/nginx-auth-ldap.git \
     && cd /tmp/nginx-${NGINX_VERSION} \
     && ./configure \
        --with-threads \
@@ -31,8 +32,10 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-de
        --with-http_stub_status_module \
        --with-http_sub_module \
        --with-http_addition_module \
+       --with-http_auth_request_module \
        --add-module=/tmp/ngx_brotli \
        --add-module=/tmp/headers-more-nginx-module \
+       --add-module=/tmp/nginx-auth-ldap \
        --with-openssl=/tmp/openssl-${OPENSSL_VERSION} \
        --with-openssl-opt='no-tests enable-tls1_3 -ljemalloc' \
        --with-ld-opt="-ljemalloc" \
