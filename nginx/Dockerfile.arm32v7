@@ -1,7 +1,7 @@
 FROM multiarch/alpine:armhf-edge
 LABEL Lan Tian "lantian@lantian.pub"
 ENV NGINX_VERSION=1.15.4 OPENSSL_VERSION=1.1.1
-RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-dev pcre-dev unzip jemalloc-dev patch linux-headers \
+RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-dev pcre-dev unzip jemalloc-dev patch linux-headers libldap-dev \
     && cd /tmp \
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
       && tar xf nginx-${NGINX_VERSION}.tar.gz \
