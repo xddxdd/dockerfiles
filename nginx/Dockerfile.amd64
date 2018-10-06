@@ -1,7 +1,7 @@
 FROM alpine
 LABEL Lan Tian "lantian@lantian.pub"
 ENV NGINX_VERSION=1.15.5 OPENSSL_VERSION=1.1.1
-RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-dev pcre-dev unzip jemalloc-dev patch linux-headers openldap-dev \
+RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-dev unzip jemalloc-dev patch linux-headers openldap-dev \
     && cd /tmp \
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
       && tar xf nginx-${NGINX_VERSION}.tar.gz \
@@ -10,8 +10,10 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-de
       && wget -qO- https://github.com/kn007/patch/raw/master/nginx_auto_using_PRIORITIZE_CHACHA.patch | patch -p1 \
       && wget -qO- https://github.com/kn007/patch/raw/master/nginx_strict-sni.patch | patch -p1 \
       && cd /tmp \
-    && git clone https://github.com/google/ngx_brotli.git \
+    && git clone https://github.com/eustas/ngx_brotli.git \
       && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
+    && git clone https://github.com/cloudflare/zlib.git \
+      && cd /tmp/zlib && make -f Makefile.in distclean && cd /tmp \
     && wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
       && tar xf openssl-${OPENSSL_VERSION}.tar.gz \
       && cd /tmp/openssl-${OPENSSL_VERSION} \
@@ -35,6 +37,7 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar zlib-de
        --with-http_sub_module \
        --with-http_addition_module \
        --with-http_auth_request_module \
+       --with-zlib=/tmp/zlib \
        --add-module=/tmp/ngx_brotli \
        --add-module=/tmp/headers-more-nginx-module \
        --add-module=/tmp/nginx-auth-ldap \
