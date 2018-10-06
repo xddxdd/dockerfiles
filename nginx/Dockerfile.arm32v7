@@ -1,7 +1,7 @@
 FROM multiarch/alpine:armhf-edge
 LABEL Lan Tian "lantian@lantian.pub"
 ENV NGINX_VERSION=1.15.5 OPENSSL_VERSION=1.1.1
-RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-dev unzip jemalloc-dev patch linux-headers openldap-dev \
+RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-dev libatomic_ops-dev unzip jemalloc-dev patch linux-headers openldap-dev \
     && cd /tmp \
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
       && tar xf nginx-${NGINX_VERSION}.tar.gz \
@@ -9,6 +9,7 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
       && wget -qO- https://github.com/kn007/patch/raw/master/nginx.patch | patch -p1 \
       && wget -qO- https://github.com/kn007/patch/raw/master/nginx_auto_using_PRIORITIZE_CHACHA.patch | patch -p1 \
       && wget -qO- https://github.com/kn007/patch/raw/master/nginx_strict-sni.patch | patch -p1 \
+      && wget -qO- https://gist.github.com/CarterLi/f6e21d4749984a255edc7b358b44bf58/raw/4a7ad66a9a29ffade34d824549ed663bc4b5ac98/use_openssl_md5_sha1.diff | patch -p1 \
       && cd /tmp \
     && git clone https://github.com/eustas/ngx_brotli.git \
       && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
@@ -25,7 +26,6 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
     && ./configure \
        --with-threads \
        --with-file-aio \
-       --with-ipv6 \
        --with-http_ssl_module \
        --with-http_spdy_module \
        --with-http_v2_module \
@@ -37,12 +37,13 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
        --with-http_sub_module \
        --with-http_addition_module \
        --with-http_auth_request_module \
+       --with-libatomic \
        --with-zlib=/tmp/zlib \
        --add-module=/tmp/ngx_brotli \
        --add-module=/tmp/headers-more-nginx-module \
        --add-module=/tmp/nginx-auth-ldap \
        --with-openssl=/tmp/openssl-${OPENSSL_VERSION} \
-       --with-openssl-opt='no-tests enable-tls1_3 -ljemalloc' \
+       --with-openssl-opt='zlib no-tests enable-tls1_3 -ljemalloc' \
        --with-ld-opt="-ljemalloc" \
        --with-cc-opt="-O3 -flto -fPIC -fPIE -fstack-protector-strong -Wformat -Werror=format-security -Wno-deprecated-declarations -Wno-strict-aliasing" \
     && make -j4 \
