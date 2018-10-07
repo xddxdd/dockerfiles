@@ -13,8 +13,6 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
       && cd /tmp \
     && git clone https://github.com/eustas/ngx_brotli.git \
       && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
-    && git clone https://github.com/cloudflare/zlib.git \
-      && cd /tmp/zlib && make -f Makefile.in distclean && cd /tmp \
     && wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
       && tar xf openssl-${OPENSSL_VERSION}.tar.gz \
       && cd /tmp/openssl-${OPENSSL_VERSION} \
@@ -39,7 +37,6 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
        --with-http_addition_module \
        --with-http_auth_request_module \
        --with-libatomic \
-       --with-zlib=/tmp/zlib \
        --add-module=/tmp/ngx_brotli \
        --add-module=/tmp/headers-more-nginx-module \
        --add-module=/tmp/nginx-auth-ldap \
@@ -51,8 +48,6 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
     && make install \
     && apk del build-base git autoconf automake wget tar unzip patch linux-headers || true \
     && cd / && rm -rf /tmp/* \
-    && ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx \
-    && ln -sf /dev/stdout /usr/local/nginx/logs/access.log \
-      && ln -sf /dev/stderr /usr/local/nginx/logs/error.log
+    && ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx
 #EXPOSE 80 443
 ENTRYPOINT /usr/sbin/nginx
