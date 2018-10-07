@@ -51,8 +51,6 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
     && make install \
     && apk del build-base git autoconf automake wget tar unzip patch linux-headers || true \
     && cd / && rm -rf /tmp/* \
-    && ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx \
-    && ln -sf /dev/stdout /usr/local/nginx/logs/access.log \
-      && ln -sf /dev/stderr /usr/local/nginx/logs/error.log
+    && ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx
 #EXPOSE 80 443
 ENTRYPOINT /usr/sbin/nginx
