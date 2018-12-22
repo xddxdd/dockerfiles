@@ -17,26 +17,38 @@ env:
   # - IMAGE_NAME=whois42d
 
 install:
-#  - TRAVIS_ALLOW_FAILURE=true
-#  - |
-#    CMT_RANGE=${TRAVIS_COMMIT_RANGE/.../..}
-#    git diff --name-only $CMT_RANGE | cut -d/ -f1 | grep -v "\." | grep $IMAGE_NAME
- # - TRAVIS_ALLOW_FAILURE=false
   - docker run --rm --privileged multiarch/qemu-user-static:register --reset
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
 script:
-  - cd $IMAGE_NAME
   - |
-    if [ ! $IMAGE_ARCH ]; then
-      IMAGE_ARCH=$(ls -1 Dockerfile.* | cut -d'.' -f2)
-    fi
-  - |
-    for THIS_ARCH in $IMAGE_ARCH
-    do
-      travis_wait 60 docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$THIS_ARCH -f Dockerfile.$THIS_ARCH .
+    # A list of default architectures that will be built
+    if [ ! "$IMAGE_ARCH" ]; then IMAGE_ARCH="i386 amd64 arm32v7 arm64v8"; fi
+
+    for THIS_ARCH in "$IMAGE_ARCH"; do
+      # Translate to alternative arch names used in multiarch images
+      if [ "$THIS_ARCH" == "amd64"   ]; then THIS_ARCH_ALT=amd64  ; fi
+      if [ "$THIS_ARCH" == "i386"    ]; then THIS_ARCH_ALT=i386   ; fi
+      if [ "$THIS_ARCH" == "arm32v7" ]; then THIS_ARCH_ALT=armhf  ; fi
+      if [ "$THIS_ARCH" == "arm64v8" ]; then THIS_ARCH_ALT=aarch64; fi
+
+      # Translate to alternative arch names used in golang
+      if [ "$THIS_ARCH" == "amd64"   ]; then THIS_ARCH_GO=amd64; fi
+      if [ "$THIS_ARCH" == "i386"    ]; then THIS_ARCH_GO=386  ; fi
+      if [ "$THIS_ARCH" == "arm32v7" ]; then THIS_ARCH_GO=arm  ; fi
+      if [ "$THIS_ARCH" == "arm64v8" ]; then THIS_ARCH_GO=arm64; fi
+
+      # Build image
+      travis_wait 60 docker build -t $DOCKER_USERNAME/$IMAGE_NAME:$THIS_ARCH \
+        --build-arg THIS_ARCH=$THIS_ARCH \
+        --build-arg THIS_ARCH_ALT=$THIS_ARCH_ALT \
+        --build-arg THIS_ARCH_GO=$THIS_ARCH_GO \
+        $IMAGE_NAME
+
+      # Tag image :{arch} and :{arch}-build{build number}
       docker tag $DOCKER_USERNAME/$IMAGE_NAME:$THIS_ARCH $DOCKER_USERNAME/$IMAGE_NAME:$THIS_ARCH-build$TRAVIS_BUILD_NUMBER
-      if [ $THIS_ARCH = "amd64" ]; then
+      if [ "$THIS_ARCH" = "amd64" ]; then
+        # Tag as latest for amd64 images
         docker tag $DOCKER_USERNAME/$IMAGE_NAME:$THIS_ARCH $DOCKER_USERNAME/$IMAGE_NAME:latest
         docker tag $DOCKER_USERNAME/$IMAGE_NAME:$THIS_ARCH $DOCKER_USERNAME/$IMAGE_NAME:build$TRAVIS_BUILD_NUMBER
       fi

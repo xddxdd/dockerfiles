@@ -1,4 +1,0 @@
-FROM multiarch/alpine:i386-edge
-LABEL Lan Tian "lantian@lantian.pub"
-RUN apk --no-cache add dnsmasq
-ENTRYPOINT /usr/sbin/dnsmasq -d

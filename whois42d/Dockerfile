@@ -1,4 +1,6 @@
-FROM multiarch/alpine:aarch64-edge
+ARG THIS_ARCH_ALT=amd64
+FROM multiarch/alpine:${THIS_ARCH_ALT}-edge
+
 LABEL Lan Tian "lantian@lantian.pub"
 RUN apk --no-cache add go git musl-dev \
     && go get github.com/Mic92/whois42d \

@@ -1,4 +1,6 @@
-FROM multiarch/alpine:i386-edge
+ARG THIS_ARCH_ALT=amd64
+FROM multiarch/alpine:${THIS_ARCH_ALT}-edge
+
 LABEL Lan Tian "lantian@lantian.pub"
 RUN apk --no-cache add build-base git autoconf automake \
     && cd /tmp \
@@ -13,4 +15,4 @@ RUN apk --no-cache add build-base git autoconf automake \
       && cd .. && rm -rf onenetd \
     && apk del --purge build-base git autoconf automake
 
-ENTRYPOINT onenetd -v 0 23 nyancat --telnet
+ENTRYPOINT ["onenetd", "-v", "0", "23", "nyancat", "--telnet"]
