@@ -23,9 +23,9 @@ install:
 script:
   - |
     # A list of default architectures that will be built
-    if [ ! "$IMAGE_ARCH" ]; then IMAGE_ARCH="i386 amd64 arm32v7 arm64v8"; fi
+    if [ ! "$IMAGE_ARCH" ]; then IMAGE_ARCH=(i386 amd64 arm32v7 arm64v8); fi
 
-    for THIS_ARCH in "$IMAGE_ARCH"; do
+    for THIS_ARCH in ${IMAGE_ARCH}; do
       # Translate to alternative arch names used in multiarch images
       if [ "$THIS_ARCH" == "amd64"   ]; then THIS_ARCH_ALT=amd64  ; fi
       if [ "$THIS_ARCH" == "i386"    ]; then THIS_ARCH_ALT=i386   ; fi
