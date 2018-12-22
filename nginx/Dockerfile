@@ -31,6 +31,7 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
     && git clone https://github.com/kvspb/nginx-auth-ldap.git \
     && cd /tmp/nginx-${NGINX_VERSION} \
+    && CC_OPENSSL_OPT=$([ "$THIS_ARCH" == "amd64" ] || [ "$THIS_ARCH" == "arm64v8" ] && echo "enable-ec_nistp_64_gcc_128" || echo) \
     && ./configure \
        --with-threads \
        --with-file-aio \
@@ -51,7 +52,7 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
        --add-module=/tmp/headers-more-nginx-module \
        --add-module=/tmp/nginx-auth-ldap \
        --with-openssl=/tmp/openssl-${OPENSSL_VERSION} \
-       --with-openssl-opt="zlib no-tests $([ \"$THIS_ARCH\" == \"amd64\" ] || [ \"$THIS_ARCH\" == \"arm64v8\" ] && echo \"enable-ec_nistp_64_gcc_128\" || echo) enable-tls1_3 -ljemalloc" \
+       --with-openssl-opt="zlib no-tests ${CC_OPENSSL_OPT} enable-tls1_3 -ljemalloc" \
        --with-ld-opt="-ljemalloc" \
        --with-cc-opt="-O3 -flto -fPIC -fPIE -fstack-protector-strong -Wformat -Werror=format-security -Wno-deprecated-declarations -Wno-strict-aliasing" \
     && make -j4 \
