@@ -1,4 +1,6 @@
-FROM multiarch/alpine:aarch64-v3.8
+ARG THIS_ARCH=amd64 THIS_ARCH_ALT=amd64
+FROM multiarch/alpine:${THIS_ARCH_ALT}-v3.8
+
 LABEL Lan Tian "lantian@lantian.pub"
 ENV NGINX_VERSION=1.15.7 OPENSSL_VERSION=1.1.1a
 RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-dev zlib-dev libatomic_ops-dev unzip jemalloc-dev patch linux-headers openldap-dev \
@@ -13,8 +15,10 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
       && cd /tmp \
     && git clone https://github.com/eustas/ngx_brotli.git \
       && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
-    && git clone https://github.com/cloudflare/zlib.git \
+    && if [ "$THIS_ARCH" == "amd64" ] || [ "$THIS_ARCH" == "arm64v8" ]; then \
+      && git clone https://github.com/cloudflare/zlib.git \
       && cd /tmp/zlib && make -f Makefile.in distclean && cd /tmp \
+      && fi \
     && wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
       && tar xf openssl-${OPENSSL_VERSION}.tar.gz \
       && cd /tmp/openssl-${OPENSSL_VERSION} \
@@ -39,7 +43,7 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
        --with-http_addition_module \
        --with-http_auth_request_module \
        --with-libatomic \
-       --with-zlib=/tmp/zlib \
+       $([ "$THIS_ARCH" == "amd64" ] || [ "$THIS_ARCH" == "arm64v8" ] && echo "--with-zlib=/tmp/zlib" || echo) \
        --add-module=/tmp/ngx_brotli \
        --add-module=/tmp/headers-more-nginx-module \
        --add-module=/tmp/nginx-auth-ldap \
