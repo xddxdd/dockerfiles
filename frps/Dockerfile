@@ -1,5 +1,8 @@
-ARG THIS_ARCH_ALT=amd64 THIS_ARCH_GO=amd64
+ARG THIS_ARCH_ALT=amd64
 FROM multiarch/alpine:${THIS_ARCH_ALT}-edge
+
+ARG THIS_ARCH_ALT=amd64
+ARG THIS_ARCH_GO=amd64
 
 LABEL Lan Tian "lantian@lantian.pub"
 ENV FRP_VER=0.22.0

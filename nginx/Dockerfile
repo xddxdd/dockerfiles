@@ -1,5 +1,8 @@
-ARG THIS_ARCH=amd64 THIS_ARCH_ALT=amd64
-FROM multiarch/alpine:${THIS_ARCH_ALT}-v3.8
+ARG THIS_ARCH_ALT=amd64
+FROM multiarch/alpine:${THIS_ARCH_ALT}-edge
+
+ARG THIS_ARCH=amd64
+ARG THIS_ARCH_ALT=amd64
 
 LABEL Lan Tian "lantian@lantian.pub"
 ENV NGINX_VERSION=1.15.7 OPENSSL_VERSION=1.1.1a
@@ -16,9 +19,9 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
     && git clone https://github.com/eustas/ngx_brotli.git \
       && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
     && if [ "$THIS_ARCH" == "amd64" ] || [ "$THIS_ARCH" == "arm64v8" ]; then \
-      && git clone https://github.com/cloudflare/zlib.git \
-      && cd /tmp/zlib && make -f Makefile.in distclean && cd /tmp \
-      && fi \
+        git clone https://github.com/cloudflare/zlib.git \
+        && cd /tmp/zlib && make -f Makefile.in distclean && cd /tmp \
+      ; fi \
     && wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
       && tar xf openssl-${OPENSSL_VERSION}.tar.gz \
       && cd /tmp/openssl-${OPENSSL_VERSION} \
@@ -57,4 +60,4 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
     && cd / && rm -rf /tmp/* \
     && ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx
 #EXPOSE 80 443
-ENTRYPOINT /usr/sbin/nginx
+ENTRYPOINT ["/usr/sbin/nginx"]
