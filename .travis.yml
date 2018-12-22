@@ -7,11 +7,11 @@ env:
   # - IMAGE_NAME=frpc
   # - IMAGE_NAME=frps
   # Split nginx build to speed up
-  # - IMAGE_NAME=nginx      IMAGE_ARCH=amd64
-  # - IMAGE_NAME=nginx      IMAGE_ARCH=arm32v7
-  # - IMAGE_NAME=nginx      IMAGE_ARCH=arm64v8
+  - IMAGE_NAME=nginx      IMAGE_ARCH=amd64
+  - IMAGE_NAME=nginx      IMAGE_ARCH=arm32v7
+  - IMAGE_NAME=nginx      IMAGE_ARCH=arm64v8
   # - IMAGE_NAME=nyancat
-  - IMAGE_NAME=php7-fpm
+  # - IMAGE_NAME=php7-fpm
   # - IMAGE_NAME=route-next
   # - IMAGE_NAME=plus1s
   # - IMAGE_NAME=whois42d
@@ -25,7 +25,7 @@ script:
     # A list of default architectures that will be built
     if [ ! "$IMAGE_ARCH" ]; then IMAGE_ARCH="i386 amd64 arm32v7 arm64v8"; fi
 
-    for THIS_ARCH in "$IMAGE_ARCH"; do
+    for THIS_ARCH in ${IMAGE_ARCH}; do
       # Translate to alternative arch names used in multiarch images
       if [ "$THIS_ARCH" == "amd64"   ]; then THIS_ARCH_ALT=amd64  ; fi
       if [ "$THIS_ARCH" == "i386"    ]; then THIS_ARCH_ALT=i386   ; fi

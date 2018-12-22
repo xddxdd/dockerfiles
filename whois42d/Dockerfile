@@ -7,6 +7,6 @@ RUN apk --no-cache add go git musl-dev \
     && cp /root/go/bin/whois42d /whois42d \
     && rm -rf /root/go \
     && apk --no-cache del go musl-dev
-ADD run.sh /
+COPY run.sh /
 RUN chmod +x /run.sh
-ENTRYPOINT /run.sh
+ENTRYPOINT ["/run.sh"]
