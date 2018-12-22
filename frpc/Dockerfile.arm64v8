@@ -1,6 +1,6 @@
 FROM multiarch/alpine:aarch64-edge
 LABEL Lan Tian "lantian@lantian.pub"
-ENV FRP_VER=0.20.0
+ENV FRP_VER=0.22.0
 RUN apk --no-cache add wget tar \
   && mkdir /frp \
   && wget --no-check-certificate https://github.com/fatedier/frp/releases/download/v${FRP_VER}/frp_${FRP_VER}_linux_arm64.tar.gz \
