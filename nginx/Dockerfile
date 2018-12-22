@@ -1,5 +1,5 @@
 ARG THIS_ARCH_ALT=amd64
-FROM multiarch/alpine:${THIS_ARCH_ALT}-edge
+FROM multiarch/alpine:${THIS_ARCH_ALT}-v3.8
 
 ARG THIS_ARCH=amd64
 ARG THIS_ARCH_ALT=amd64
@@ -56,7 +56,7 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
        --with-cc-opt="-O3 -flto -fPIC -fPIE -fstack-protector-strong -Wformat -Werror=format-security -Wno-deprecated-declarations -Wno-strict-aliasing" \
     && make -j4 \
     && make install \
-    && apk del build-base git autoconf automake wget tar unzip patch linux-headers || true \
+    && apk del build-base git autoconf automake wget tar unzip patch linux-headers \
     && cd / && rm -rf /tmp/* \
     && ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx
 #EXPOSE 80 443
