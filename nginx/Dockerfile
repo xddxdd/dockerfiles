@@ -5,7 +5,7 @@ ARG THIS_ARCH=amd64
 ARG THIS_ARCH_ALT=amd64
 
 LABEL Lan Tian "lantian@lantian.pub"
-ENV NGINX_VERSION=1.15.7 OPENSSL_VERSION=1.1.1a
+ENV NGINX_VERSION=1.15.8 OPENSSL_VERSION=1.1.1a
 RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-dev zlib-dev libatomic_ops-dev unzip jemalloc-dev patch linux-headers openldap-dev \
     && cd /tmp \
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
