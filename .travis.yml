@@ -8,9 +8,9 @@ env:
   # - IMAGE_NAME=frps
 
   # Split nginx build to speed up
-  - IMAGE_NAME=nginx      IMAGE_ARCH=amd64
-  - IMAGE_NAME=nginx      IMAGE_ARCH=arm32v7
-  - IMAGE_NAME=nginx      IMAGE_ARCH=arm64v8
+  # - IMAGE_NAME=nginx      IMAGE_ARCH=amd64
+  # - IMAGE_NAME=nginx      IMAGE_ARCH=arm32v7
+  # - IMAGE_NAME=nginx      IMAGE_ARCH=arm64v8
 
   # - IMAGE_NAME=nyancat
   # - IMAGE_NAME=php7-fpm
@@ -18,6 +18,7 @@ env:
   # - IMAGE_NAME=plus1s
   # - IMAGE_NAME=whois42d
   # - IMAGE_NAME=zabbix-agent
+  - IMAGE_NAME=quassel
 
 install:
   - docker run --rm --privileged multiarch/qemu-user-static:register --reset
