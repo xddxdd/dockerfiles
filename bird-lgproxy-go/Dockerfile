@@ -1,13 +1,13 @@
-FROM golang:alpine AS build
-ARG THIS_ARCH_GO=amd64
-ENV GOOS=linux GOARCH=${THIS_ARCH_GO}
-COPY . /root/
-RUN cd /root \
-  && apk -q --no-cache add build-base upx \
-  && make
-
 ARG THIS_ARCH_ALT=amd64
 FROM multiarch/alpine:${THIS_ARCH_ALT}-edge
+ARG THIS_ARCH_GO=amd64
+
 LABEL Lan Tian "lantian@lantian.pub"
-COPY --from=build /root/bird-lgproxy-go /
+ENV GOOS=linux GOARCH=${THIS_ARCH_GO}
+COPY . /root/bird-lgproxy-go
+RUN apk -q --no-cache add go build-base upx \
+  && cd /root/bird-lgproxy-go && make \
+  && mv bird-lgproxy-go / && cd / && rm -rf /root/bird-lgproxy-go \
+  && apk del go build-base upx
+
 ENTRYPOINT ["/bird-lgproxy-go"]
