@@ -7,6 +7,7 @@ import (
     "sync"
     "runtime"
     "os/exec"
+    "flag"
 )
 
 // BIRDv4 connection & mutex lock
@@ -163,8 +164,12 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 func main() {
     var err error
 
+    birdPtr := flag.String("bird", "/var/run/bird/bird.ctl", "socket file for bird")
+    bird6Ptr := flag.String("bird6", "/var/run/bird/bird6.ctl", "socket file for bird6")
+    flag.Parse()
+
     // Initialize BIRDv4 socket
-    bird, err = net.Dial("unix", "/var/run/bird/bird.ctl")
+    bird, err = net.Dial("unix", *birdPtr)
     if err != nil {
         panic(err)
     }
@@ -175,7 +180,7 @@ func main() {
     birdReadln(bird, nil)
 
     // Initialize BIRDv6 socket
-    bird6, err = net.Dial("unix", "/var/run/bird/bird6.ctl")
+    bird6, err = net.Dial("unix", *bird6Ptr)
     if err != nil {
         panic(err)
     }
