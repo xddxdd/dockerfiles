@@ -3,6 +3,7 @@ services:
   - docker
 language: bash
 env:
+  - IMAGE_NAME=bird-lgproxy-go
   # - IMAGE_NAME=dnsmasq
   # - IMAGE_NAME=frpc
   # - IMAGE_NAME=frps
@@ -18,7 +19,7 @@ env:
   # - IMAGE_NAME=plus1s
   # - IMAGE_NAME=whois42d
   # - IMAGE_NAME=zabbix-agent
-  - IMAGE_NAME=quassel
+  # - IMAGE_NAME=quassel
 
 install:
   - docker run --rm --privileged multiarch/qemu-user-static:register --reset
