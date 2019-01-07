@@ -7,8 +7,8 @@ ENV GOOS=linux GOARCH=${THIS_ARCH_GO}
 RUN apk -q --no-cache add git go build-base upx \
   && cd /root \
   && git clone https://github.com/xddxdd/bird-lg-go.git \
-  && cd /root/bird-lg-go/proxy && make \
-  && mv proxy / && cd / && rm -rf /root/bird-lg-go \
+  && cd /root/bird-lg-go/frontend && make \
+  && mv frontend / && cd / && rm -rf /root/bird-lg-go \
   && apk del go build-base upx
 
-ENTRYPOINT ["/proxy"]
+ENTRYPOINT ["/frontend"]
