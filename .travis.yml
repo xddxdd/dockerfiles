@@ -4,7 +4,7 @@ services:
 language: bash
 env:
   # - IMAGE_NAME=bird-lg
-  - IMAGE_NAME=bird-lg-go
+  # - IMAGE_NAME=bird-lg-go
   - IMAGE_NAME=bird-lgproxy-go
   # - IMAGE_NAME=dnsmasq
   # - IMAGE_NAME=frpc
