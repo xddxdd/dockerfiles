@@ -50,7 +50,7 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
        $([ "$THIS_ARCH" == "amd64" ] || [ "$THIS_ARCH" == "arm64v8" ] && echo "--with-zlib=/tmp/zlib" || echo) \
        --add-module=/tmp/ngx_brotli \
        --add-module=/tmp/headers-more-nginx-module \
-       --add-module=/tmp/nginx-auth-ldap \
+       --add-dynamic-module=/tmp/nginx-auth-ldap \
        --with-openssl=/tmp/openssl-${OPENSSL_VERSION} \
        --with-openssl-opt="zlib no-tests ${CC_OPENSSL_OPT} enable-tls1_3 -ljemalloc" \
        --with-ld-opt="-ljemalloc" \
