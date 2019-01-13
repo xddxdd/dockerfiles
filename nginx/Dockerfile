@@ -35,22 +35,21 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
     && ./configure \
        --with-threads \
        --with-file-aio \
-       --with-http_ssl_module \
-       --with-http_spdy_module \
-       --with-http_v2_module \
-       --with-http_v2_hpack_enc \
-       --with-http_gzip_static_module \
-       --with-http_gunzip_module \
-       --with-http_realip_module \
-       --with-http_stub_status_module \
-       --with-http_sub_module \
        --with-http_addition_module \
        --with-http_auth_request_module \
+       --with-http_gunzip_module \
+       --with-http_gzip_static_module \
+       --with-http_realip_module \
+       --with-http_spdy_module \
+       --with-http_ssl_module \
+       --with-http_stub_status_module \
+       --with-http_sub_module \
+       --with-http_v2_module \
+       --with-http_v2_hpack_enc \
        --with-libatomic \
        $([ "$THIS_ARCH" == "amd64" ] || [ "$THIS_ARCH" == "arm64v8" ] && echo "--with-zlib=/tmp/zlib" || echo) \
        --add-module=/tmp/ngx_brotli \
        --add-module=/tmp/headers-more-nginx-module \
-       --add-dynamic-module=/tmp/nginx-auth-ldap \
        --with-openssl=/tmp/openssl-${OPENSSL_VERSION} \
        --with-openssl-opt="zlib no-tests ${CC_OPENSSL_OPT} enable-tls1_3 -ljemalloc" \
        --with-ld-opt="-ljemalloc" \
