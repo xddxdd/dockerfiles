@@ -3,15 +3,15 @@ services:
   - docker
 language: bash
 env:
-  # - IMAGE_NAME=bird-lg
+  - IMAGE_NAME=bird-lg
   # - IMAGE_NAME=dnsmasq
   # - IMAGE_NAME=frpc
   # - IMAGE_NAME=frps
 
   # Split nginx build to speed up
-  - IMAGE_NAME=nginx      IMAGE_ARCH=amd64
-  - IMAGE_NAME=nginx      IMAGE_ARCH=arm32v7
-  - IMAGE_NAME=nginx      IMAGE_ARCH=arm64v8
+  # - IMAGE_NAME=nginx      IMAGE_ARCH=amd64
+  # - IMAGE_NAME=nginx      IMAGE_ARCH=arm32v7
+  # - IMAGE_NAME=nginx      IMAGE_ARCH=arm64v8
 
   # - IMAGE_NAME=nyancat
   # - IMAGE_NAME=php7-fpm
