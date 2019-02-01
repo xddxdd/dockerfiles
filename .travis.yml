@@ -3,7 +3,6 @@ services:
   - docker
 language: bash
 env:
-  - IMAGE_NAME=bird-lg
   # - IMAGE_NAME=dnsmasq
   # - IMAGE_NAME=frpc
   # - IMAGE_NAME=frps
