@@ -6,7 +6,7 @@ ARG THIS_ARCH_ALT=amd64
 
 LABEL Lan Tian "lantian@lantian.pub"
 ENV NGINX_VERSION=1.15.8 OPENSSL_VERSION=1.1.1a
-RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-dev zlib-dev libatomic_ops-dev unzip jemalloc-dev patch linux-headers openldap-dev \
+RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-dev zlib-dev libatomic_ops-dev unzip jemalloc-dev patch linux-headers openldap-dev util-linux \
     && cd /tmp \
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
       && tar xf nginx-${NGINX_VERSION}.tar.gz \
@@ -25,14 +25,14 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
     && wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
       && tar xf openssl-${OPENSSL_VERSION}.tar.gz \
       && cd /tmp/openssl-${OPENSSL_VERSION} \
-      && wget -qO- https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1a_ciphers.patch | patch -p1 \
+      && wget -qO- https://github.com/hakasenyang/openssl-patch/raw/2ff4fd05f1156ac3dae1a521eb1ef9d432e4b6bc/openssl-equal-1.1.1a_ciphers.patch | patch -p1 \
       && wget -qO- https://github.com/hakasenyang/openssl-patch/raw/master/openssl-1.1.1a-chacha_draft.patch | patch -p1 \
       && cd /tmp \
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
     && git clone https://github.com/kvspb/nginx-auth-ldap.git \
     && cd /tmp/nginx-${NGINX_VERSION} \
     && CC_OPENSSL_OPT=$([ "$THIS_ARCH" == "amd64" ] || [ "$THIS_ARCH" == "arm64v8" ] && echo "enable-ec_nistp_64_gcc_128" || echo) \
-    && ./configure \
+    && $([ "$THIS_ARCH" == "i386" ] && echo "setarch i386" || echo) ./configure \
        --with-threads \
        --with-file-aio \
        --with-http_addition_module \
@@ -54,9 +54,9 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
        --with-openssl-opt="zlib no-tests ${CC_OPENSSL_OPT} enable-tls1_3 -ljemalloc" \
        --with-ld-opt="-ljemalloc" \
        --with-cc-opt="-O3 -flto -fPIC -fPIE -fstack-protector-strong -Wformat -Werror=format-security -Wno-deprecated-declarations -Wno-strict-aliasing" \
-    && make -j4 \
-    && make install \
-    && apk del build-base git autoconf automake wget tar unzip patch linux-headers \
+    && $([ "$THIS_ARCH" == "i386" ] && echo "setarch i386" || echo) make -j4 \
+    && $([ "$THIS_ARCH" == "i386" ] && echo "setarch i386" || echo) make install \
+    && apk del build-base git autoconf automake wget tar unzip patch linux-headers util-linux \
     && cd / && rm -rf /tmp/* \
     && ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx
 #EXPOSE 80 443
