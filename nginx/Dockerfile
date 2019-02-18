@@ -25,7 +25,7 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
     && wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
       && tar xf openssl-${OPENSSL_VERSION}.tar.gz \
       && cd /tmp/openssl-${OPENSSL_VERSION} \
-      && wget -qO- https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1a_ciphers.patch | patch -p1 \
+      && wget -qO- https://github.com/hakasenyang/openssl-patch/raw/2ff4fd05f1156ac3dae1a521eb1ef9d432e4b6bc/openssl-equal-1.1.1a_ciphers.patch | patch -p1 \
       && wget -qO- https://github.com/hakasenyang/openssl-patch/raw/master/openssl-1.1.1a-chacha_draft.patch | patch -p1 \
       && cd /tmp \
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
