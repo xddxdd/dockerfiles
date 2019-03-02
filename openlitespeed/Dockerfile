@@ -15,7 +15,7 @@ RUN sh -c "echo \"deb http://rpms.litespeedtech.com/debian/ jessie main\" > /etc
       && dpkg -i libonig2_5.9.5-3.2+deb8u1_${THIS_ARCH_ALT}.deb \
       && rm libonig2_5.9.5-3.2+deb8u1_${THIS_ARCH_ALT}.deb \
       && cd / \
-    && apt-get install -y openlitespeed ols-pagespeed ols-modsecurity \
+    && apt-get install -y supervisor openlitespeed ols-pagespeed ols-modsecurity \
     && sh -c "apt-cache search lsphp | cut -f1 -d' ' | egrep -v \"(dbg|dev|source)\" | xargs apt-get install -y" \
     && ln -sf /usr/local/lsws/lsphp53/bin/lsphp /usr/local/lsws/fcgi-bin/lsphp53 \
     && ln -sf /usr/local/lsws/lsphp54/bin/lsphp /usr/local/lsws/fcgi-bin/lsphp54 \
@@ -27,4 +27,5 @@ RUN sh -c "echo \"deb http://rpms.litespeedtech.com/debian/ jessie main\" > /etc
     && ln -sf /usr/local/lsws/lsphp73/bin/lsphp /usr/local/lsws/fcgi-bin/lsphp73 \
     && ln -sf /usr/local/lsws/lsphp73/bin/lsphp /usr/local/lsws/fcgi-bin/lsphp \
     && rm -rf /var/cache/apt
-ENTRYPOINT ["/usr/local/lsws/bin/openlitespeed","-d"]
+COPY openlitespeed.conf /etc/supervisor/conf.d/openlitespeed.conf
+ENTRYPOINT ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
