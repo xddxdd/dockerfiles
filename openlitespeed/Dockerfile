@@ -21,10 +21,12 @@ RUN sh -c "echo \"deb http://rpms.litespeedtech.com/debian/ jessie main\" > /etc
     && ln -sf /usr/local/lsws/lsphp54/bin/lsphp /usr/local/lsws/fcgi-bin/lsphp54 \
     && ln -sf /usr/local/lsws/lsphp55/bin/lsphp /usr/local/lsws/fcgi-bin/lsphp55 \
     && ln -sf /usr/local/lsws/lsphp56/bin/lsphp /usr/local/lsws/fcgi-bin/lsphp56 \
+    && ln -sf /usr/local/lsws/lsphp56/bin/lsphp /usr/local/lsws/fcgi-bin/lsphp5 \
     && ln -sf /usr/local/lsws/lsphp70/bin/lsphp /usr/local/lsws/fcgi-bin/lsphp70 \
     && ln -sf /usr/local/lsws/lsphp71/bin/lsphp /usr/local/lsws/fcgi-bin/lsphp71 \
     && ln -sf /usr/local/lsws/lsphp72/bin/lsphp /usr/local/lsws/fcgi-bin/lsphp72 \
     && ln -sf /usr/local/lsws/lsphp73/bin/lsphp /usr/local/lsws/fcgi-bin/lsphp73 \
+    && ln -sf /usr/local/lsws/lsphp73/bin/lsphp /usr/local/lsws/fcgi-bin/lsphp7 \
     && ln -sf /usr/local/lsws/lsphp73/bin/lsphp /usr/local/lsws/fcgi-bin/lsphp \
     && rm -rf /var/cache/apt
 COPY openlitespeed.conf /etc/supervisor/conf.d/openlitespeed.conf
