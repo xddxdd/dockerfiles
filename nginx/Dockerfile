@@ -1,12 +1,13 @@
 ARG THIS_ARCH_ALT=amd64
-FROM multiarch/alpine:${THIS_ARCH_ALT}-v3.8
+FROM multiarch/alpine:${THIS_ARCH_ALT}-edge
 
 ARG THIS_ARCH=amd64
 ARG THIS_ARCH_ALT=amd64
 
 LABEL Lan Tian "lantian@lantian.pub"
 ENV NGINX_VERSION=1.15.9 OPENSSL_VERSION=1.1.1b
-RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-dev zlib-dev libatomic_ops-dev unzip jemalloc-dev patch linux-headers openldap-dev util-linux \
+RUN apk --no-cache add pcre zlib libatomic_ops openldap libgd \
+      build-base git autoconf automake libtool wget tar gd-dev pcre-dev zlib-dev libatomic_ops-dev unzip patch linux-headers openldap-dev util-linux \
     && cd /tmp \
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
       && tar xf nginx-${NGINX_VERSION}.tar.gz \
@@ -38,6 +39,7 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
        --with-http_auth_request_module \
        --with-http_gunzip_module \
        --with-http_gzip_static_module \
+       --with-http_image_filter_module \
        --with-http_realip_module \
        --with-http_spdy_module \
        --with-http_ssl_module \
@@ -50,12 +52,11 @@ RUN apk --no-cache add build-base git autoconf automake libtool wget tar pcre-de
        --add-module=/tmp/ngx_brotli \
        --add-module=/tmp/headers-more-nginx-module \
        --with-openssl=/tmp/openssl-${OPENSSL_VERSION} \
-       --with-openssl-opt="zlib no-tests ${CC_OPENSSL_OPT} enable-tls1_3 -ljemalloc" \
-       --with-ld-opt="-ljemalloc" \
+       --with-openssl-opt="zlib no-tests ${CC_OPENSSL_OPT} enable-tls1_3" \
        --with-cc-opt="-O3 -flto -fPIC -fPIE -fstack-protector-strong -Wformat -Werror=format-security -Wno-deprecated-declarations -Wno-strict-aliasing" \
     && $([ "$THIS_ARCH" == "i386" ] && echo "setarch i386" || echo) make -j4 \
     && $([ "$THIS_ARCH" == "i386" ] && echo "setarch i386" || echo) make install \
-    && apk del build-base git autoconf automake wget tar unzip patch linux-headers util-linux \
+    && apk del build-base git autoconf automake libtool wget tar gd-dev pcre-dev zlib-dev libatomic_ops-dev unzip patch linux-headers openldap-dev util-linux \
     && cd / && rm -rf /tmp/* \
     && ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx
 #EXPOSE 80 443
