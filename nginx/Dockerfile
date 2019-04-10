@@ -14,7 +14,7 @@ RUN apk --no-cache add pcre zlib libatomic_ops openldap libgd \
       && cd /tmp/nginx-${NGINX_VERSION} \
       && wget -qO- https://github.com/kn007/patch/raw/master/nginx.patch | patch -p1 \
       && wget -qO- https://github.com/kn007/patch/raw/master/nginx_auto_using_PRIORITIZE_CHACHA.patch | patch -p1 \
-      && wget -qO- https://github.com/kn007/patch/raw/master/nginx_strict-sni.patch | patch -p1 \
+      && wget -qO- https://github.com/hakasenyang/openssl-patch/raw/master/nginx_strict-sni_1.15.10.patch | patch -p1 \
       && wget -qO- https://gist.github.com/CarterLi/f6e21d4749984a255edc7b358b44bf58/raw/4a7ad66a9a29ffade34d824549ed663bc4b5ac98/use_openssl_md5_sha1.diff | patch -p1 \
       && cd /tmp \
     && git clone https://github.com/eustas/ngx_brotli.git \
