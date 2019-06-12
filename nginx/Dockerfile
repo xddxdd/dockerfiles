@@ -5,7 +5,7 @@ ARG THIS_ARCH=amd64
 ARG THIS_ARCH_ALT=amd64
 
 LABEL Lan Tian "lantian@lantian.pub"
-ENV NGINX_VERSION=1.15.11 OPENSSL_VERSION=1.1.1b
+ENV NGINX_VERSION=1.17.0 OPENSSL_VERSION=1.1.1b
 RUN apk --no-cache add pcre zlib libatomic_ops openldap libgd \
       build-base git autoconf automake libtool wget tar gd-dev pcre-dev zlib-dev libatomic_ops-dev unzip patch linux-headers openldap-dev util-linux \
     && cd /tmp \
