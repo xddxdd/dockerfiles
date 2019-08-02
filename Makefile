@@ -11,21 +11,28 @@ GPP_FLAGS_M := "\#" "\n" " " " " "\n" "(" ")"
 GPP_FLAGS_EXTRA := +c "\\\n" ""
 GPP_FLAGS := -I ${GPP_INCLUDE_DIR} --nostdinc -U ${GPP_FLAGS_U} -M ${GPP_FLAGS_M} ${GPP_FLAGS_EXTRA}
 
-# Require BUILD_NUMBER be set
-ifndef BUILD_NUMBER
-$(error BUILD_NUMBER is not set)
-endif
-
 # Function to create targets for image/architecture combos
 define create-image-arch-target
 ${DOCKERFILES_DIR}/$1/Dockerfile.$2: ${DOCKERFILES_DIR}/$1/template.Dockerfile
-	@gpp ${GPP_FLAGS} -D ARCH_$(shell echo $2 | tr a-z A-Z) -o ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ${DOCKERFILES_DIR}/$1/template.Dockerfile
+	@gpp ${GPP_FLAGS} -D ARCH_$(shell echo $2 | tr a-z A-Z) -o ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ${DOCKERFILES_DIR}/$1/template.Dockerfile || rm -rf ${DOCKERFILES_DIR}/$1/Dockerfile.$2
 
-$1/$2: _crossbuild ${DOCKERFILES_DIR}/$1/Dockerfile.$2
-	@docker build -t ${DOCKER_USERNAME}/$1:$2-build${BUILD_NUMBER} -f ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ${DOCKERFILES_DIR}/${IMAGE}
-	@docker push ${DOCKER_USERNAME}/$1:$2-build${BUILD_NUMBER}
-	@docker tag ${DOCKER_USERNAME}/$1:$2-build${BUILD_NUMBER} ${DOCKER_USERNAME}/$1:$2
-	@docker push ${DOCKER_USERNAME}/$1:$2
+$1/$2: ${DOCKERFILES_DIR}/$1/Dockerfile.$2
+	@if [ -z "${BUILD_NUMBER}" ]; then \
+		echo "BUILD_NUMBER not set"; \
+		/bin/false; \
+	fi
+	@if [ -f ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ]; then \
+		docker build -t ${DOCKER_USERNAME}/$1:$2-build${BUILD_NUMBER} -f ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ${DOCKERFILES_DIR}/${IMAGE}; \
+		docker push ${DOCKER_USERNAME}/$1:$2-build${BUILD_NUMBER}; \
+		docker tag ${DOCKER_USERNAME}/$1:$2-build${BUILD_NUMBER} ${DOCKER_USERNAME}/$1:$2; \
+		docker push ${DOCKER_USERNAME}/$1:$2; \
+	else \
+		echo "Dockerfile generation failed, see error above"; \
+		if [ -n "${JENKINS_HOME}" ]; then \
+			echo "Running in Jenkins CI, failing the build"; \
+			/bin/false; \
+		fi \
+	fi
 
 endef
 
