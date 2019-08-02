@@ -24,3 +24,8 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Generated intermediate files
+Dockerfile.*
+.built
+docker
