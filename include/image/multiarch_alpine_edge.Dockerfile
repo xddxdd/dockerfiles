@@ -7,5 +7,5 @@ FROM multiarch/alpine:armhf-edge
 #elif defined(ARCH_ARM64V8)
 FROM multiarch/alpine:arm64-edge
 #else
-FROM multiarch/alpine:amd64-edge
+#error "Architecture not set"
 #endif

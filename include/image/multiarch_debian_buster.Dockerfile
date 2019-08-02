@@ -7,5 +7,5 @@ FROM multiarch/debian-debootstrap:armhf-buster
 #elif defined(ARCH_ARM64V8)
 FROM multiarch/debian-debootstrap:arm64-buster
 #else
-FROM multiarch/debian-debootstrap:amd64-buster
+#error "Architecture not set"
 #endif
