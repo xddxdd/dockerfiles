@@ -1,5 +1,6 @@
+#include "common.Dockerfile"
 #include "image/multiarch_alpine_edge.Dockerfile"
 #include "env.Dockerfile"
 
-RUN apk --no-cache add dnsmasq
+RUN PKG_INSTALL(dnsmasq)
 ENTRYPOINT ["/usr/sbin/dnsmasq", "-d"]

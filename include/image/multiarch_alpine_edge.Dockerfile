@@ -9,3 +9,6 @@ FROM multiarch/alpine:arm64-edge
 #else
 #error "Architecture not set"
 #endif
+
+#define PKG_INSTALL(pkgs) apk add -q --no-cache pkgs
+#define PKG_UNINSTALL(pkgs) apk del -q --purge pkgs

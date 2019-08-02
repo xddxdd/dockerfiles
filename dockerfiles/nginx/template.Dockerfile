@@ -2,9 +2,11 @@
 #include "image/multiarch_alpine_edge.Dockerfile"
 #include "env.Dockerfile"
 
+#define APP_DEPS pcre zlib libatomic_ops openldap libgd
+#define APP_BUILD_TOOLS build-base git autoconf automake libtool wget tar gd-dev pcre-dev zlib-dev libatomic_ops-dev unzip patch linux-headers openldap-dev util-linux
+
 ENV NGINX_VERSION=1.17.0 OPENSSL_VERSION=1.1.1b
-RUN apk --no-cache add pcre zlib libatomic_ops openldap libgd \
-      build-base git autoconf automake libtool wget tar gd-dev pcre-dev zlib-dev libatomic_ops-dev unzip patch linux-headers openldap-dev util-linux \
+RUN PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
     && cd /tmp \
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
       && tar xf nginx-${NGINX_VERSION}.tar.gz \
@@ -67,7 +69,7 @@ RUN apk --no-cache add pcre zlib libatomic_ops openldap libgd \
     && make -j4 \
     && make install \
 #endif    
-    && apk del build-base git autoconf automake libtool wget tar gd-dev pcre-dev zlib-dev libatomic_ops-dev unzip patch linux-headers openldap-dev util-linux \
+    && PKG_UNINSTALL(APP_BUILD_TOOLS) \
     && cd / && rm -rf /tmp/* \
     && ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx
 #EXPOSE 80 443
