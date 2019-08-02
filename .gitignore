@@ -27,5 +27,4 @@ Temporary Items
 
 # Generated intermediate files
 Dockerfile.*
-.built
-docker
+.docker_build_flag

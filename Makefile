@@ -1,80 +1,57 @@
+# Basic definitions
+DOCKERFILES_DIR := dockerfiles
+DOCKER_USERNAME := xddxdd
+ARCHITECTURES := amd64 i386 arm32v7 arm64v8
+IMAGES := $(subst ${DOCKERFILES_DIR}/,,$(wildcard ${DOCKERFILES_DIR}/*))
+
+# General Purpose Preprocessor config
 GPP_INCLUDE_DIR := include
 GPP_FLAGS_U := "" "" "(" "," ")" "(" ")" "\#" ""
 GPP_FLAGS_M := "\#" "\n" " " " " "\n" "(" ")"
-GPP_FLAGS := -I ${GPP_INCLUDE_DIR} --nostdinc -U ${GPP_FLAGS_U} -M ${GPP_FLAGS_M}
-DOCKERFILES_DIR := dockerfiles
-DOCKER_BUILD_FLAG := .docker
-DOCKER_USERNAME := xddxdd
+GPP_FLAGS_EXTRA := +c "\\\n" "" +s "\"" "\"" "\\" +s "'" "'" "\\"
+GPP_FLAGS := -I ${GPP_INCLUDE_DIR} --nostdinc -U ${GPP_FLAGS_U} -M ${GPP_FLAGS_M} ${GPP_FLAGS_EXTRA}
 
-SUBDIRS := $(wildcard ${DOCKERFILES_DIR}/*)
+# Function to create targets for image/architecture combos
+define create-image-arch-target
+${DOCKERFILES_DIR}/$1/Dockerfile.$2: ${DOCKERFILES_DIR}/$1/template.Dockerfile
+	gpp ${GPP_FLAGS} -D ARCH_$(shell echo $2 | tr a-z A-Z) -o ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ${DOCKERFILES_DIR}/$1/template.Dockerfile
 
+$1/$2: _crossbuild ${DOCKERFILES_DIR}/$1/Dockerfile.$2
+	docker build -t ${DOCKER_USERNAME}/$1:$2-build${BUILD_NUMBER} -f ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ${DOCKERFILES_DIR}/${IMAGE}
+	#docker push ${DOCKER_USERNAME}/$1:$2-build${BUILD_NUMBER}
+	docker tag ${DOCKER_USERNAME}/$1:$2-build${BUILD_NUMBER} ${DOCKER_USERNAME}/$1:$2
+	#docker push ${DOCKER_USERNAME}/$1:$2
+
+endef
+
+# Function to create targets for images
+define create-image-target
+$1:$(foreach arch,latest ${ARCHITECTURES},$1/${arch})
+
+# Target for latest image, mapping to amd64
+$1/latest: $1/amd64
+	docker tag ${DOCKER_USERNAME}/$1:amd64-build${BUILD_NUMBER} ${DOCKER_USERNAME}/$1:build${BUILD_NUMBER}
+	#docker push ${DOCKER_USERNAME}/$1:build${BUILD_NUMBER}
+	docker tag ${DOCKER_USERNAME}/$1:amd64-build${BUILD_NUMBER} ${DOCKER_USERNAME}/$1:latest
+	#docker push ${DOCKER_USERNAME}/$1:latest
+
+$(foreach arch,${ARCHITECTURES},$(eval $(call create-image-arch-target,$1,$(arch))))
+endef
+
+# By default, build docker images, and do not delete intermediate files
+.DEFAULT_GOAL := images
 .SECONDARY:
 
-# AMD x86-64 architecture
-${DOCKERFILES_DIR}/%/Dockerfile.amd64: ${DOCKERFILES_DIR}/%/template.Dockerfile
-	gpp ${GPP_FLAGS} -D ARCH_AMD64 -o $@ $<
+# Create all targets for image/architecture combos
+$(foreach image,${IMAGES},$(eval $(call create-image-target,${image})))
 
-${DOCKER_BUILD_FLAG}/%/amd64: ${DOCKERFILES_DIR}/%/Dockerfile.amd64
-	$(eval IMAGE := ${word 2,${subst /, ,$@}})
-	docker build -t ${DOCKER_USERNAME}/${IMAGE}:amd64-build${BUILD_NUMBER} -f ${DOCKERFILES_DIR}/${IMAGE}/Dockerfile.amd64 ${DOCKERFILES_DIR}/${IMAGE}
-	docker push ${DOCKER_USERNAME}/${IMAGE}:amd64-build${BUILD_NUMBER}
-	docker tag ${DOCKER_USERNAME}/${IMAGE}:amd64-build${BUILD_NUMBER} ${DOCKER_USERNAME}/${IMAGE}:amd64
-	docker push ${DOCKER_USERNAME}/${IMAGE}:amd64
-	# AMD64 special
-	docker tag ${DOCKER_USERNAME}/${IMAGE}:amd64-build${BUILD_NUMBER} ${DOCKER_USERNAME}/${IMAGE}:build${BUILD_NUMBER}
-	docker push ${DOCKER_USERNAME}/${IMAGE}:build${BUILD_NUMBER}
-	docker tag ${DOCKER_USERNAME}/${IMAGE}:amd64-build${BUILD_NUMBER} ${DOCKER_USERNAME}/${IMAGE}:latest
-	docker push ${DOCKER_USERNAME}/${IMAGE}:latest
-	@mkdir -p ${DOCKER_BUILD_FLAG}/${IMAGE}
-	@touch $@
-
-# Intel i386 architecture
-${DOCKERFILES_DIR}/%/Dockerfile.i386: ${DOCKERFILES_DIR}/%/template.Dockerfile
-	gpp ${GPP_FLAGS} -D ARCH_I386 -o $@ $<
-
-${DOCKER_BUILD_FLAG}/%/i386: ${DOCKERFILES_DIR}/%/Dockerfile.i386
-	$(eval IMAGE := ${word 2,${subst /, ,$@}})
-	docker build -t ${DOCKER_USERNAME}/${IMAGE}:i386-build${BUILD_NUMBER} -f ${DOCKERFILES_DIR}/${IMAGE}/Dockerfile.i386 ${DOCKERFILES_DIR}/${IMAGE}
-	docker push ${DOCKER_USERNAME}/${IMAGE}:i386-build${BUILD_NUMBER}
-	docker tag ${DOCKER_USERNAME}/${IMAGE}:i386-build${BUILD_NUMBER} ${DOCKER_USERNAME}/${IMAGE}:i386
-	docker push ${DOCKER_USERNAME}/${IMAGE}:i386
-	@mkdir -p ${DOCKER_BUILD_FLAG}/${IMAGE}
-	@touch $@
-
-# ARMv7 32-bit architecture
-${DOCKERFILES_DIR}/%/Dockerfile.arm32v7: ${DOCKERFILES_DIR}/%/template.Dockerfile
-	gpp ${GPP_FLAGS} -D ARCH_ARM32V7 -o $@ $<
-
-${DOCKER_BUILD_FLAG}/%/arm32v7: ${DOCKERFILES_DIR}/%/Dockerfile.arm32v7
-	$(eval IMAGE := ${word 2,${subst /, ,$@}})
-	docker build -t ${DOCKER_USERNAME}/${IMAGE}:arm32v7-build${BUILD_NUMBER} -f ${DOCKERFILES_DIR}/${IMAGE}/Dockerfile.arm32v7 ${DOCKERFILES_DIR}/${IMAGE}
-	docker push ${DOCKER_USERNAME}/${IMAGE}:arm32v7-build${BUILD_NUMBER}
-	docker tag ${DOCKER_USERNAME}/${IMAGE}:arm32v7-build${BUILD_NUMBER} ${DOCKER_USERNAME}/${IMAGE}:arm32v7
-	docker push ${DOCKER_USERNAME}/${IMAGE}:arm32v7
-	@mkdir -p ${DOCKER_BUILD_FLAG}/${IMAGE}
-	@touch $@
-
-# ARMv8 64-bbit architecture
-${DOCKERFILES_DIR}/%/Dockerfile.arm64v8: ${DOCKERFILES_DIR}/%/template.Dockerfile
-	gpp ${GPP_FLAGS} -D ARCH_ARM64V8 -o $@ $<
-
-${DOCKER_BUILD_FLAG}/%/arm64v8: ${DOCKERFILES_DIR}/%/Dockerfile.arm64v8
-	$(eval IMAGE := ${word 2,${subst /, ,$@}})
-	docker build -t ${DOCKER_USERNAME}/${IMAGE}:arm64v8-build${BUILD_NUMBER} -f ${DOCKERFILES_DIR}/${IMAGE}/Dockerfile.arm64v8 ${DOCKERFILES_DIR}/${IMAGE}
-	docker push ${DOCKER_USERNAME}/${IMAGE}:arm64v8-build${BUILD_NUMBER}
-	docker tag ${DOCKER_USERNAME}/${IMAGE}:arm64v8-build${BUILD_NUMBER} ${DOCKER_USERNAME}/${IMAGE}:arm64v8
-	docker push ${DOCKER_USERNAME}/${IMAGE}:arm64v8
-	@mkdir -p ${DOCKER_BUILD_FLAG}/${IMAGE}
-	@touch $@
-
-all:
+# Target to enable multiarch support
+_crossbuild:
 	docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
-	$(eval IMAGES := $(subst ${DOCKERFILES_DIR}/,,$(wildcard ${DOCKERFILES_DIR}/*)))
-	$(eval ARCHITECTURES := amd64 i386 arm32v7 arm64v8)
+dockerfiles: $(foreach image,${IMAGES},$(foreach arch,${ARCHITECTURES},${DOCKERFILES_DIR}/$(image)/Dockerfile.$(arch)))
 
-	${MAKE} $(foreach image,${IMAGES},$(foreach arch,${ARCHITECTURES},${DOCKER_BUILD_FLAG}/$(image)/$(arch)))
-	
+images: $(foreach image,${IMAGES},$(image))
+
 clean:
 	rm -rf ${DOCKERFILES_DIR}/*/Dockerfile.{i386,amd64,arm32v7,arm64v8}
-	@rm -rf ${DOCKER_BUILD_FLAG}
