@@ -16,7 +16,7 @@ define create-image-arch-target
 ${DOCKERFILES_DIR}/$1/Dockerfile.$2: ${DOCKERFILES_DIR}/$1/template.Dockerfile
 	gpp ${GPP_FLAGS} -D ARCH_$(shell echo $2 | tr a-z A-Z) -o ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ${DOCKERFILES_DIR}/$1/template.Dockerfile || rm -rf ${DOCKERFILES_DIR}/$1/Dockerfile.$2
 
-$1/$2: _crossbuild ${DOCKERFILES_DIR}/$1/Dockerfile.$2
+$1/$2: ${DOCKERFILES_DIR}/$1/Dockerfile.$2
 	if [ -z "${BUILD_NUMBER}" ]; then \
 		echo "BUILD_NUMBER not set"; \
 		exit 1; \

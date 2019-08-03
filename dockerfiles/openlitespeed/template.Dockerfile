@@ -7,15 +7,9 @@
 #endif
 
 ENV LIBONIG2_VERSION="5.9.5-3.2+deb8u1"
-RUN sh -c "echo \"deb http://rpms.litespeedtech.com/debian/ jessie main\" > /etc/apt/sources.list.d/lst_debian_repo.list" \
-    && sh -c "echo \"deb http://rpms.litespeedtech.com/debian/ stretch main\" >> /etc/apt/sources.list.d/lst_debian_repo.list" \
-    && wget -O /etc/apt/trusted.gpg.d/lst_debian_repo.gpg http://rpms.litespeedtech.com/debian/lst_debian_repo.gpg \
-    && wget -O /etc/apt/trusted.gpg.d/lst_repo.gpg http://rpms.litespeedtech.com/debian/lst_repo.gpg \
-    && cd /tmp \
-      && wget http://ftp.debian.org/debian/pool/main/libo/libonig/libonig2_${LIBONIG2_VERSION}_${THIS_ARCH_ALT}.deb \
-      && dpkg -i libonig2_${LIBONIG2_VERSION}_${THIS_ARCH_ALT}.deb \
-      && rm libonig2_${LIBONIG2_VERSION}_${THIS_ARCH_ALT}.deb \
-      && cd / \
+COPY sources.list /etc/apt/sources.list
+RUN WGET(http://rpms.litespeedtech.com/debian/lst_debian_repo.gpg) -O /etc/apt/trusted.gpg.d/lst_debian_repo.gpg \
+    && WGET(http://rpms.litespeedtech.com/debian/lst_repo.gpg) -O /etc/apt/trusted.gpg.d/lst_repo.gpg \
     && PKG_INSTALL(openlitespeed ols-pagespeed ols-modsecurity) \
     && sh -c "apt-cache search lsphp | cut -f1 -d' ' | egrep -v \"(dbg|dev|source)\" | xargs apt-get install -y" \
     && ln -sf /usr/local/lsws/lsphp53/bin/lsphp /usr/local/lsws/fcgi-bin/lsphp53 \
