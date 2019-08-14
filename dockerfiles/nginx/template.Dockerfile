@@ -5,14 +5,13 @@
 #define APP_DEPS pcre zlib libatomic_ops openldap libgd
 #define APP_BUILD_TOOLS build-base git autoconf automake libtool wget tar gd-dev pcre-dev zlib-dev libatomic_ops-dev unzip patch linux-headers openldap-dev util-linux
 
-ENV NGINX_VERSION=1.17.0 OPENSSL_VERSION=1.1.1b
+ENV NGINX_VERSION=1.17.3 OPENSSL_VERSION=1.1.1c
 RUN PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
     && cd /tmp \
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
       && tar xf nginx-${NGINX_VERSION}.tar.gz \
       && cd /tmp/nginx-${NGINX_VERSION} \
       && PATCH(https://github.com/kn007/patch/raw/master/nginx.patch) \
-      && PATCH(https://github.com/kn007/patch/raw/master/nginx_auto_using_PRIORITIZE_CHACHA.patch) \
       && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/nginx_strict-sni_1.15.10.patch) \
       && PATCH(https://gist.github.com/CarterLi/f6e21d4749984a255edc7b358b44bf58/raw/4a7ad66a9a29ffade34d824549ed663bc4b5ac98/use_openssl_md5_sha1.diff) \
       && cd /tmp \
@@ -26,7 +25,7 @@ RUN PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
       && tar xf openssl-${OPENSSL_VERSION}.tar.gz \
       && cd /tmp/openssl-${OPENSSL_VERSION} \
       && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1b_ciphers.patch) \
-      && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-1.1.1b-chacha_draft.patch) \
+      && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-1.1.1c-chacha_draft.patch) \
       && cd /tmp \
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
     && cd /tmp/nginx-${NGINX_VERSION} \
