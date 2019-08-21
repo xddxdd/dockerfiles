@@ -1,11 +1,15 @@
 #if defined(ARCH_AMD64)
-FROM multiarch/alpine:amd64-edge
+FROM amd64/alpine:edge
 #elif defined(ARCH_I386)
-FROM multiarch/alpine:i386-edge
+FROM i386/alpine:edge
 #elif defined(ARCH_ARM32V7)
-FROM multiarch/alpine:armhf-edge
+FROM arm32v7/alpine:edge
 #elif defined(ARCH_ARM64V8)
-FROM multiarch/alpine:arm64-edge
+FROM arm64v8/alpine:edge
+#elif defined(ARCH_PPC64LE)
+FROM ppc64le/alpine:edge
+#elif defined(ARCH_S390X)
+FROM s390x/alpine:edge
 #else
 #error "Architecture not set"
 #endif

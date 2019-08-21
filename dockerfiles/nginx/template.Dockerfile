@@ -1,5 +1,5 @@
 #include "common.Dockerfile"
-#include "image/multiarch_alpine_edge.Dockerfile"
+#include "image/alpine_edge.Dockerfile"
 #include "env.Dockerfile"
 
 #define APP_DEPS pcre zlib libatomic_ops openldap libgd

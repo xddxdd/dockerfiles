@@ -1,11 +1,15 @@
 #if defined(ARCH_AMD64)
-FROM multiarch/debian-debootstrap:amd64-buster
+FROM amd64/debian:buster
 #elif defined(ARCH_I386)
-FROM multiarch/debian-debootstrap:i386-buster
+FROM i386/debian:buster
 #elif defined(ARCH_ARM32V7)
-FROM multiarch/debian-debootstrap:armhf-buster
+FROM arm32v7/debian:buster
 #elif defined(ARCH_ARM64V8)
-FROM multiarch/debian-debootstrap:arm64-buster
+FROM arm64v8/debian:buster
+#elif defined(ARCH_PPC64LE)
+FROM ppc64le/debian:buster
+#elif defined(ARCH_S390X)
+FROM s390x/debian:buster
 #else
 #error "Architecture not set"
 #endif

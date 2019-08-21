@@ -1,8 +1,12 @@
 #include "common.Dockerfile"
-#include "image/multiarch_alpine_edge.Dockerfile"
+#include "image/alpine_edge.Dockerfile"
 #include "env.Dockerfile"
 
-ENV FRP_VER=0.22.0
+#if !defined(ARCH_I386) && !defined(ARCH_AMD64) && !defined(ARCH_ARM32V7) && !defined(ARCH_ARM64V8)
+#error "FRP only supports i386 or amd64"
+#endif
+
+ENV FRP_VER=0.28.2
 RUN PKG_INSTALL(wget tar) \
   && mkdir /frp \
   && UNTARGZ(https://github.com/fatedier/frp/releases/download/v${FRP_VER}/frp_${FRP_VER}_linux_${THIS_ARCH_GO}.tar.gz) \

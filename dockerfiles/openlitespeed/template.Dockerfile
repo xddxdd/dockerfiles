@@ -1,9 +1,9 @@
 #include "common.Dockerfile"
-#include "image/multiarch_debian_buster.Dockerfile"
+#include "image/debian_buster.Dockerfile"
 #include "env.Dockerfile"
 
-#if defined(ARCH_ARM32V7) || defined(ARCH_ARM64V8)
-#error "OpenLitespeed does not support ARM"
+#if !defined(ARCH_I386) && !defined(ARCH_AMD64)
+#error "OpenLitespeed only supports i386 or amd64"
 #endif
 
 ENV LIBONIG2_VERSION="5.9.5-3.2+deb8u1"

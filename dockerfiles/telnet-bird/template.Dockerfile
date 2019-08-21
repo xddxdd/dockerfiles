@@ -1,5 +1,5 @@
 #include "common.Dockerfile"
-#include "image/multiarch_debian_buster.Dockerfile"
+#include "image/debian_buster.Dockerfile"
 #include "env.Dockerfile"
 
 COPY bird-restricted.sh /usr/sbin/

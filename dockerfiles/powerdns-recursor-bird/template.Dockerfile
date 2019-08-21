@@ -1,5 +1,5 @@
 #include "common.Dockerfile"
-#include "image/multiarch_alpine_edge.Dockerfile"
+#include "image/alpine_edge.Dockerfile"
 #include "env.Dockerfile"
 
 RUN sh -c "echo http://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories" \
