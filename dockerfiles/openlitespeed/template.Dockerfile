@@ -7,9 +7,10 @@
 #endif
 
 ENV LIBONIG2_VERSION="5.9.5-3.2+deb8u1"
-COPY sources.list /etc/apt/sources.list
-RUN WGET(http://rpms.litespeedtech.com/debian/lst_debian_repo.gpg) -O /etc/apt/trusted.gpg.d/lst_debian_repo.gpg \
-    && WGET(http://rpms.litespeedtech.com/debian/lst_repo.gpg) -O /etc/apt/trusted.gpg.d/lst_repo.gpg \
+ADD sources.list /etc/apt/sources.list
+ADD http://rpms.litespeedtech.com/debian/lst_debian_repo.gpg /etc/apt/trusted.gpg.d/lst_debian_repo.gpg
+ADD http://rpms.litespeedtech.com/debian/lst_repo.gpg /etc/apt/trusted.gpg.d/lst_repo.gpg
+RUN chmod 644 /etc/apt/trusted.gpg.d/* \
     && PKG_INSTALL(openlitespeed ols-pagespeed ols-modsecurity) \
     && sh -c "apt-cache search lsphp | cut -f1 -d' ' | egrep -v \"(dbg|dev|source)\" | xargs apt-get install -y" \
     && ln -sf /usr/local/lsws/lsphp53/bin/lsphp /usr/local/lsws/fcgi-bin/lsphp53 \
