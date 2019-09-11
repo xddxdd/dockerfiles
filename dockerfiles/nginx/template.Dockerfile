@@ -5,7 +5,7 @@
 #define APP_DEPS pcre zlib libatomic_ops openldap libgd
 #define APP_BUILD_TOOLS build-base git autoconf automake libtool wget tar gd-dev pcre-dev zlib-dev libatomic_ops-dev unzip patch linux-headers openldap-dev util-linux binutils
 
-ENV NGINX_VERSION=1.17.3 OPENSSL_VERSION=1.1.1c
+ENV NGINX_VERSION=1.17.3 OPENSSL_VERSION=1.1.1d
 RUN PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
     && cd /tmp \
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
@@ -24,8 +24,8 @@ RUN PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
     && wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
       && tar xf openssl-${OPENSSL_VERSION}.tar.gz \
       && cd /tmp/openssl-${OPENSSL_VERSION} \
-      && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1b_ciphers.patch) \
-      && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-1.1.1c-chacha_draft.patch) \
+      && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1d.patch) \
+      && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-1.1.1d-chacha_draft.patch) \
       && cd /tmp \
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
     && cd /tmp/nginx-${NGINX_VERSION} \
