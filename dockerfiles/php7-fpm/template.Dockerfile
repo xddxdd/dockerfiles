@@ -11,7 +11,7 @@ RUN PKG_INSTALL(ca-certificates) \
     && echo "https://dl.bintray.com/php-alpine/v3.10/php-7.4" >> /etc/apk/repositories \
     && apk update \
     && mkdir /usr/log && mkdir /run/php \
-    && sh -c "apk -q --no-cache search php7- | egrep -v \"(apache|litespeed|gmagick|libsodium)\" | xargs apk --no-cache add" \
+    && sh -c "apk -q --no-cache search php7- | egrep -v \"(apache|dev|litespeed|gmagick|libsodium)\" | xargs apk --no-cache add" \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
     && cd /root \
     && git clone https://github.com/maxmind/MaxMind-DB-Reader-php.git \
