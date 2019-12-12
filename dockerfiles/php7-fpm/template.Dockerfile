@@ -3,14 +3,21 @@
 #include "env.Dockerfile"
 
 #define APP_DEPS libmaxminddb
-#define APP_BUILD_TOOLS php7-dev build-base git libmaxminddb-dev
+#define APP_BUILD_TOOLS php7-dev build-base autoconf automake git libmaxminddb-dev
 
-RUN mkdir /usr/log && mkdir /run/php \
-    && sh -c "apk -q --no-cache search php7- | egrep -v \"(apache|dev|litespeed|gmagick)\" | xargs apk --no-cache add" \
+# See https://github.com/codecasts/php-alpine
+ADD https://dl.bintray.com/php-alpine/key/php-alpine.rsa.pub /etc/apk/keys/php-alpine.rsa.pub
+RUN PKG_INSTALL(ca-certificates) \
+    && echo "https://dl.bintray.com/php-alpine/v3.10/php-7.4" >> /etc/apk/repositories \
+    && apk update \
+    && mkdir /usr/log && mkdir /run/php \
+    && sh -c "apk -q --no-cache search php7- | egrep -v \"(apache|litespeed|gmagick|libsodium)\" | xargs apk --no-cache add" \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
     && cd /root \
     && git clone https://github.com/maxmind/MaxMind-DB-Reader-php.git \
-      && cd MaxMind-DB-Reader-php/ext && phpize && ./configure && make && make install \
+      && cd MaxMind-DB-Reader-php/ext && phpize7 \
+      && ./configure --with-php-config=/usr/bin/php-config7 \
+      && make && make install \
       && cd /root && rm -rf MaxMind-DB-Reader-php \
       && sh -c "echo extension=maxminddb.so > /etc/php7/conf.d/maxminddb.ini" \
     && PKG_UNINSTALL(APP_BUILD_TOOLS)
