@@ -14,5 +14,7 @@ FROM s390x/alpine:edge
 #error "Architecture not set"
 #endif
 
+#define LINUX_HEADERS linux-headers
+
 #define PKG_INSTALL(pkgs) apk add -q --no-cache pkgs
 #define PKG_UNINSTALL(pkgs) apk del -q --purge pkgs

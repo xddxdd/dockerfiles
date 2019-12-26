@@ -3,9 +3,10 @@
 #include "env.Dockerfile"
 
 #define APP_DEPS tini pdns-recursor pdns-tools pdns-backend-\*
-#define APP_BUILD_TOOLS build-essential bison flex libncurses-dev libreadline-dev linux-headers-${THIS_ARCH_ALT} wget patch binutils
+#define APP_BUILD_TOOLS build-essential bison flex libncurses-dev libreadline-dev LINUX_HEADERS wget patch binutils
 
 ENV BIRD_VERSION=2.0.5
+ADD start.sh /start.sh
 RUN PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
     && rm -rf /var/cache/apk/* \
     && chmod +x /start.sh \
@@ -21,7 +22,6 @@ RUN PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
     && rm -rf /tmp/* \
     && strip /usr/sbin/bird* \
     && PKG_UNINSTALL(APP_BUILD_TOOLS)
-ADD start.sh /start.sh
 ADD bird.conf /etc/bird.conf
 ADD bird-static.conf /etc/bird-static.conf
-ENTRYPOINT ["/sbin/tini", "-g", "--", "/start.sh"]
+ENTRYPOINT ["/usr/bin/tini", "-g", "--", "/start.sh"]

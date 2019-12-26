@@ -3,7 +3,7 @@
 #include "env.Dockerfile"
 
 #define APP_DEPS libmaxminddb0
-#define APP_BUILD_TOOLS build-essential autoconf automake git libmaxminddb-dev
+#define APP_BUILD_TOOLS build-essential autoconf automake git libmaxminddb-dev sed
 
 # https://packages.sury.org/php/README.txt
 RUN mkdir /usr/log && mkdir /run/php \

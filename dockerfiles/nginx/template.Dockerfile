@@ -2,8 +2,8 @@
 #include "image/debian_buster.Dockerfile"
 #include "env.Dockerfile"
 
-#define APP_DEPS libpcre3 zlib1g libatomic-ops-dev libgd
-#define APP_BUILD_TOOLS build-essential git autoconf automake libtool wget tar libgd-dev libpcre3-dev zlib1g-dev unzip patch linux-headers-${THIS_ARCH_ALT} util-linux binutils
+#define APP_DEPS libpcre3 zlib1g libatomic-ops-dev libgd3 util-linux binutils
+#define APP_BUILD_TOOLS build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev unzip patch LINUX_HEADERS
 
 ENV NGINX_VERSION=1.17.7 OPENSSL_VERSION=1.1.1d
 RUN PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
