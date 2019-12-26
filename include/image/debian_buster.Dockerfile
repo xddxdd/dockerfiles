@@ -10,6 +10,9 @@ FROM arm64v8/debian:buster
 FROM ppc64le/debian:buster
 #elif defined(ARCH_S390X)
 FROM s390x/debian:buster
+#elif defined(ARCH_RISCV64)
+#warning "Debian RISC-V image is based on Sid (Unstable)"
+FROM xddxdd/debian-riscv64:latest
 #else
 #error "Architecture not set"
 #endif
