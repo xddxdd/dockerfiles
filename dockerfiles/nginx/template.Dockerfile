@@ -1,9 +1,9 @@
 #include "common.Dockerfile"
-#include "image/alpine_edge.Dockerfile"
+#include "image/debian_buster.Dockerfile"
 #include "env.Dockerfile"
 
-#define APP_DEPS pcre zlib libatomic_ops openldap libgd
-#define APP_BUILD_TOOLS build-base git autoconf automake libtool wget tar gd-dev pcre-dev zlib-dev libatomic_ops-dev unzip patch linux-headers openldap-dev util-linux binutils
+#define APP_DEPS libpcre3 zlib1g libatomic-ops-dev libgd
+#define APP_BUILD_TOOLS build-essential git autoconf automake libtool wget tar libgd-dev libpcre3-dev zlib1g-dev unzip patch linux-headers-${THIS_ARCH_ALT} util-linux binutils
 
 ENV NGINX_VERSION=1.17.7 OPENSSL_VERSION=1.1.1d
 RUN PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \

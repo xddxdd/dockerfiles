@@ -1,17 +1,12 @@
 #include "common.Dockerfile"
-#include "image/alpine_edge.Dockerfile"
+#include "image/debian_buster.Dockerfile"
 #include "env.Dockerfile"
 
-#define APP_DEPS tini
-#define APP_BUILD_TOOLS build-base bison flex ncurses-dev readline-dev linux-headers wget patch binutils
+#define APP_DEPS tini pdns-server pdns-tools pdns-backend-\*
+#define APP_BUILD_TOOLS build-essential bison flex libncurses-dev libreadline-dev linux-headers-${THIS_ARCH_ALT} wget patch binutils
 
 ENV BIRD_VERSION=2.0.5
-ADD start.sh /start.sh
-ADD bird.conf /etc/bird.conf
-ADD bird-static.conf /etc/bird-static.conf
-RUN apk update \
-    && sh -c "apk search -q pdns | grep -v pdnsd | xargs apk add" \
-    && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
+RUN PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
     && rm -rf /var/cache/apk/* \
     && chmod +x /start.sh \
     && cd /tmp \
@@ -26,4 +21,7 @@ RUN apk update \
     && rm -rf /tmp/* \
     && strip /usr/sbin/bird* \
     && PKG_UNINSTALL(APP_BUILD_TOOLS)
+ADD start.sh /start.sh
+ADD bird.conf /etc/bird.conf
+ADD bird-static.conf /etc/bird-static.conf
 ENTRYPOINT ["/sbin/tini", "-g", "--", "/start.sh"]

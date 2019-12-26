@@ -1,8 +1,8 @@
 #include "common.Dockerfile"
-#include "image/alpine_edge.Dockerfile"
+#include "image/debian_buster.Dockerfile"
 #include "env.Dockerfile"
 
-#define APP_BUILD_TOOLS build-base git autoconf automake
+#define APP_BUILD_TOOLS build-essential git autoconf automake
 
 RUN PKG_INSTALL(APP_BUILD_TOOLS) \
     && cd /tmp \

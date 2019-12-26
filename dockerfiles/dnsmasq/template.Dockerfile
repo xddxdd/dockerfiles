@@ -1,5 +1,5 @@
 #include "common.Dockerfile"
-#include "image/alpine_edge.Dockerfile"
+#include "image/debian_buster.Dockerfile"
 #include "env.Dockerfile"
 
 RUN PKG_INSTALL(dnsmasq)
