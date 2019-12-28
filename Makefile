@@ -11,7 +11,7 @@ GPP_FLAGS_M := "\#" "\n" " " " " "\n" "(" ")"
 GPP_FLAGS_EXTRA := +c "\\\n" ""
 GPP_FLAGS := -I ${GPP_INCLUDE_DIR} --nostdinc -U ${GPP_FLAGS_U} -M ${GPP_FLAGS_M} ${GPP_FLAGS_EXTRA}
 
-BUILD_NUMBER := $(shell date +%Y%m%d%H%M%S)
+BUILD_DATE ?= $(shell date +%Y%m%d%H%M)
 
 # Function to create targets for image/architecture combos
 define create-image-arch-target
@@ -20,9 +20,9 @@ ${DOCKERFILES_DIR}/$1/Dockerfile.$2: ${DOCKERFILES_DIR}/$1/template.Dockerfile
 
 $1/$2: ${DOCKERFILES_DIR}/$1/Dockerfile.$2
 	@if [ -f ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ]; then \
-		docker build -t ${DOCKER_USERNAME}/$1:$2-build${BUILD_DATE} -f ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ${DOCKERFILES_DIR}/$1 || exit 1; \
-		[ -n "${JENKINS_HOME}" ] && docker push ${DOCKER_USERNAME}/$1:$2-build${BUILD_DATE} || /bin/true; \
-		docker tag ${DOCKER_USERNAME}/$1:$2-build${BUILD_DATE} ${DOCKER_USERNAME}/$1:$2 || exit 1; \
+		docker build -t ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} -f ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ${DOCKERFILES_DIR}/$1 || exit 1; \
+		[ -n "${JENKINS_HOME}" ] && docker push ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} || /bin/true; \
+		docker tag ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} ${DOCKER_USERNAME}/$1:$2 || exit 1; \
 		[ -n "${JENKINS_HOME}" ] && docker push ${DOCKER_USERNAME}/$1:$2 || /bin/true; \
 	else \
 		echo "Dockerfile generation failed, see error above"; \
@@ -40,9 +40,9 @@ $1:$(foreach arch,latest ${ARCHITECTURES},$1/${arch})
 
 # Target for latest image, mapping to amd64
 $1/latest: $1/amd64
-	@docker tag ${DOCKER_USERNAME}/$1:amd64-build${BUILD_DATE} ${DOCKER_USERNAME}/$1:build${BUILD_DATE} || exit 1
-	[ -n "${JENKINS_HOME}" ] && docker push ${DOCKER_USERNAME}/$1:build${BUILD_DATE} || /bin/true
-	@docker tag ${DOCKER_USERNAME}/$1:amd64-build${BUILD_DATE} ${DOCKER_USERNAME}/$1:latest || exit 1
+	@docker tag ${DOCKER_USERNAME}/$1:amd64-${BUILD_DATE} ${DOCKER_USERNAME}/$1:${BUILD_DATE} || exit 1
+	[ -n "${JENKINS_HOME}" ] && docker push ${DOCKER_USERNAME}/$1:${BUILD_DATE} || /bin/true
+	@docker tag ${DOCKER_USERNAME}/$1:amd64-${BUILD_DATE} ${DOCKER_USERNAME}/$1:latest || exit 1
 	[ -n "${JENKINS_HOME}" ] && docker push ${DOCKER_USERNAME}/$1:latest || /bin/true
 
 $(foreach arch,${ARCHITECTURES},$(eval $(call create-image-arch-target,$1,$(arch))))
