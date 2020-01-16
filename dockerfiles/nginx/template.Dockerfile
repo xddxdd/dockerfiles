@@ -3,16 +3,16 @@
 #include "env.Dockerfile"
 
 #if defined(ARCH_RISCV64)
-#define APP_DEPS libpcre3 zlib1g libgd3 util-linux binutils
+#define APP_DEPS libpcre3 zlib1g libgd3 util-linux binutils libzstd1
 #else
-#define APP_DEPS libpcre3 zlib1g libatomic-ops-dev libgd3 util-linux binutils
+#define APP_DEPS libpcre3 zlib1g libatomic-ops-dev libgd3 util-linux binutils libzstd1
 #endif
 
 #if defined(ARCH_AMD64)
-#define APP_BUILD_TOOLS build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev unzip patch LINUX_HEADERS cmake
+#define APP_BUILD_TOOLS build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch LINUX_HEADERS cmake
 #define APP_BUILD_TOOLS_UNSTABLE rustc cargo golang-go
 #else
-#define APP_BUILD_TOOLS build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev unzip patch LINUX_HEADERS
+#define APP_BUILD_TOOLS build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch LINUX_HEADERS
 #endif
 
 ENV NGINX_VERSION=1.17.7 OPENSSL_VERSION=1.1.1d QUICHE_VERSION=c93c09fdb83db65a10264c3eb63d3400403e9d7e
@@ -59,6 +59,7 @@ RUN cd /tmp \
       && cd /tmp \
 #endif
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
+    && git clone https://github.com/tokers/zstd-nginx-module.git \
     && cd /tmp/nginx-${NGINX_VERSION} \
 #ifdef ARCH_I386
     && setarch i386 ./configure \
@@ -87,6 +88,7 @@ RUN cd /tmp \
 #endif
        --add-module=/tmp/ngx_brotli \
        --add-module=/tmp/headers-more-nginx-module \
+       --add-module=/tmp/zstd-nginx-module \
 #if defined(ARCH_AMD64)
        --with-http_v3_module \
        --with-openssl=/tmp/quiche/deps/boringssl \
