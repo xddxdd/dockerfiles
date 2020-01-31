@@ -2,14 +2,18 @@
 #include "image/debian_buster.Dockerfile"
 #include "env.Dockerfile"
 
-#define APP_DEPS tini dnsmasq
-#define APP_BUILD_TOOLS build-essential bison flex libncurses-dev libreadline-dev LINUX_HEADERS wget patch binutils
+#define APP_DEPS tini libssl1\*
+#define APP_BUILD_TOOLS build-essential bison flex libncurses-dev libreadline-dev LINUX_HEADERS wget patch binutils libssl-dev git
 
 ENV BIRD_VERSION=2.0.5
 ADD start.sh /start.sh
 RUN PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
     && chmod +x /start.sh \
     && cd /tmp \
+    && git clone https://github.com/pymumu/smartdns.git \
+        && cd /tmp/smartdns/src && make \
+        && cd /tmp/smartdns && bash install -i \
+        && cd /tmp \
     && UNTARGZ(ftp://bird.network.cz/pub/bird/bird-${BIRD_VERSION}.tar.gz) \
         && cd /tmp/bird-${BIRD_VERSION} \
         && ./configure --prefix=/usr \
