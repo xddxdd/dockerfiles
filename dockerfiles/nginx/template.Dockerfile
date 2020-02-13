@@ -15,11 +15,7 @@
 #define APP_BUILD_TOOLS build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch LINUX_HEADERS
 #endif
 
-ENV NGINX_VERSION=1.17.7 OPENSSL_VERSION=1.1.1d QUICHE_VERSION=c93c09fdb83db65a10264c3eb63d3400403e9d7e
-
-#if defined(ARCH_AMD64)
-ADD amd64/nginx_spdy_patch_quic_aware.patch /tmp/
-#endif
+ENV NGINX_VERSION=1.17.8 OPENSSL_VERSION=1.1.1d QUICHE_VERSION=9a8b3b1
 
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
@@ -36,8 +32,7 @@ RUN cd /tmp \
       && tar xf nginx-${NGINX_VERSION}.tar.gz \
       && cd /tmp/nginx-${NGINX_VERSION} \
 #if defined(ARCH_AMD64)
-      && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_quic.patch) \
-      && PATCH_LOCAL(/tmp/nginx_spdy_patch_quic_aware.patch) \
+      && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_spdy_quic.patch) \
 #else
       && PATCH(https://github.com/kn007/patch/raw/master/nginx.patch) \
 #endif
