@@ -20,7 +20,7 @@ ${DOCKERFILES_DIR}/$1/Dockerfile.$2: ${DOCKERFILES_DIR}/$1/template.Dockerfile
 
 $1/$2: ${DOCKERFILES_DIR}/$1/Dockerfile.$2
 	@if [ -f ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ]; then \
-		docker build -t ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} -f ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ${DOCKERFILES_DIR}/$1 || exit 1; \
+		docker build --no-cache -t ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} -f ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ${DOCKERFILES_DIR}/$1 || exit 1; \
 		[ -n "${JENKINS_HOME}" ] && docker push ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} || /bin/true; \
 		docker tag ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} ${DOCKER_USERNAME}/$1:$2 || exit 1; \
 		[ -n "${JENKINS_HOME}" ] && docker push ${DOCKER_USERNAME}/$1:$2 || /bin/true; \
