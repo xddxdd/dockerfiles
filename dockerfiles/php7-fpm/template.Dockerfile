@@ -13,12 +13,12 @@ RUN mkdir /usr/log && mkdir /run/php \
     && WGET(https://packages.sury.org/php/apt.gpg) -O /etc/apt/trusted.gpg.d/php.gpg \
     && echo "deb https://packages.sury.org/php/ buster main" > /etc/apt/sources.list.d/php.list \
     && apt-get -qq update \
-    && sh -c "apt-cache search php7.4 | cut -d' ' -f1 | egrep -v \"(apache|litespeed|gmagick|libsodium|embed|yac)\" | xargs apt-get -qq install -y --no-install-recommends" \
+    && sh -c "apt-cache search php7.4 | cut -d' ' -f1 | egrep -v \"(apache|litespeed|gmagick|libsodium|embed|yac|dbgsym)\" | xargs apt-get -qq install -y --no-install-recommends" \
     && echo "daemonize = no" >> /etc/php/7.4/fpm/php-fpm.conf \
     && ln -sf /usr/sbin/php-fpm7.4 /usr/sbin/php-fpm \
 #else
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
-    && sh -c "apt-cache search php7.3 | cut -d' ' -f1 | egrep -v \"(apache|litespeed|gmagick|libsodium|embed|yac)\" | xargs apt-get -qq install -y --no-install-recommends" \
+    && sh -c "apt-cache search php7.3 | cut -d' ' -f1 | egrep -v \"(apache|litespeed|gmagick|libsodium|embed|yac|dbgsym)\" | xargs apt-get -qq install -y --no-install-recommends" \
     && echo "daemonize = no" >> /etc/php/7.3/fpm/php-fpm.conf \
     && ln -sf /usr/sbin/php-fpm7.3 /usr/sbin/php-fpm \
 #endif
