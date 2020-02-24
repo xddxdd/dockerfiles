@@ -2,10 +2,10 @@
 #include "image/debian_buster.Dockerfile"
 #include "env.Dockerfile"
 
-#define APP_DEPS tini libssl1\*
+#define APP_DEPS tini libncurses6 libncursesw6 libreadline7 libssl1\*
 #define APP_BUILD_TOOLS build-essential bison flex libncurses-dev libreadline-dev LINUX_HEADERS wget patch binutils libssl-dev git
 
-ENV BIRD_VERSION=2.0.5
+ENV BIRD_VERSION=2.0.7
 ADD start.sh /start.sh
 RUN PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
     && chmod +x /start.sh \
