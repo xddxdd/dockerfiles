@@ -20,6 +20,10 @@ FROM s390x/debian:buster
 #warning "Debian RISC-V image is based on Sid (Unstable)"
 FROM xddxdd/debian-riscv64:latest
 #define LINUX_HEADERS linux-headers-riscv64
+#elif defined(ARCH_X32)
+#warning "Debian X32 image is based on Sid (Unstable)"
+FROM xddxdd/debian-x32:latest
+#define LINUX_HEADERS linux-headers-\*-common
 #else
 #error "Architecture not set"
 #endif

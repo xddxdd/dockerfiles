@@ -19,6 +19,9 @@ FROM s390x/debian:sid
 #elif defined(ARCH_RISCV64)
 FROM xddxdd/debian-riscv64:latest
 #define LINUX_HEADERS linux-headers-riscv64
+#elif defined(ARCH_X32)
+FROM xddxdd/debian-x32:latest
+#define LINUX_HEADERS linux-headers-\*-common
 #else
 #error "Architecture not set"
 #endif

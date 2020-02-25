@@ -1,7 +1,7 @@
 # Basic definitions
 DOCKERFILES_DIR := dockerfiles
 DOCKER_USERNAME := xddxdd
-ARCHITECTURES := amd64 i386 arm32v7 arm64v8 ppc64le s390x riscv64
+ARCHITECTURES := amd64 i386 arm32v7 arm64v8 ppc64le s390x riscv64 x32
 IMAGES := $(subst ${DOCKERFILES_DIR}/,,$(wildcard ${DOCKERFILES_DIR}/*))
 
 # General Purpose Preprocessor config
