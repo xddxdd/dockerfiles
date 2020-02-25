@@ -2,7 +2,7 @@
 #include "image/debian_sid.Dockerfile"
 #include "env.Dockerfile"
 
-#define APP_DEPS tini pdns-recursor pdns-tools pdns-backend-\* libncurses6 libncursesw6 libreadline8
+#define APP_DEPS tini pdns-recursor pdns-tools libncurses6 libncursesw6 libreadline8
 #define APP_BUILD_TOOLS build-essential bison flex libncurses-dev libreadline-dev LINUX_HEADERS wget patch binutils
 
 ENV BIRD_VERSION=2.0.7
