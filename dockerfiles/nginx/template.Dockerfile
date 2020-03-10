@@ -15,8 +15,8 @@
 #define APP_BUILD_TOOLS build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch LINUX_HEADERS
 #endif
 
-ENV NGINX_VERSION=1.17.9 OPENSSL_VERSION=1.1.1d QUICHE_VERSION=9a8b3b1
-
+ENV NGINX_VERSION=1.17.9 OPENSSL_VERSION=1.1.1d QUICHE_VERSION=2f2dfab
+COPY nginx-spdy-patch-quic-aware.patch /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
 #if defined(ARCH_AMD64)
@@ -32,10 +32,11 @@ RUN cd /tmp \
       && tar xf nginx-${NGINX_VERSION}.tar.gz \
       && cd /tmp/nginx-${NGINX_VERSION} \
 #if defined(ARCH_AMD64)
-      && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_spdy_quic.patch) \
+      && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_quic.patch) \
 #else
       && PATCH(https://github.com/kn007/patch/raw/master/nginx.patch) \
 #endif
+      && PATCH_LOCAL(/tmp/nginx-spdy-patch-quic-aware.patch) \
       && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/nginx_strict-sni_1.15.10.patch) \
       && PATCH(https://gist.github.com/CarterLi/f6e21d4749984a255edc7b358b44bf58/raw/4a7ad66a9a29ffade34d824549ed663bc4b5ac98/use_openssl_md5_sha1.diff) \
       && cd /tmp \
