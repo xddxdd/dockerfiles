@@ -1,3 +1,3 @@
 #!/bin/sh
-/usr/sbin/bird -f &
+[[ -f "/etc/bird-static.conf" ]] && /usr/sbin/bird -f &
 /usr/sbin/pdns_recursor $@
