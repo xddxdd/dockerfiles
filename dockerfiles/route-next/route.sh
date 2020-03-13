@@ -9,4 +9,4 @@ else
     echo Routing $TARGET_IP to $NEXT_IP
     ip route add $TARGET_IP/32 via $NEXT_IP
 fi
-ping 127.0.0.1 -q
+sleep infinity

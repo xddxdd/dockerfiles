@@ -3,5 +3,4 @@
 #include "env.Dockerfile"
 
 ADD route.sh /
-RUN chmod +x /route.sh
-ENTRYPOINT ["/route.sh"]
+ENTRYPOINT ["sh", "/route.sh"]
