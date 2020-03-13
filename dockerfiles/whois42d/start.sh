@@ -11,9 +11,7 @@ while true; do
     for i in $(seq 1 600); do
         # Check if whois42d is still running
         ps | grep whois42d >/dev/null 2>/dev/null
-        if [ $? -eq 1 ]; then
-            exit 1
-        fi
+        [ $? -eq 0 ] || exit $?
         sleep 6
     done
     # Update git repository every hour
