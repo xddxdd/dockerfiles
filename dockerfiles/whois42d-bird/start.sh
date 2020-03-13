@@ -1,5 +1,5 @@
 #!/bin/sh
-[[ -f "/etc/bird-static.conf" ]] && /usr/sbin/bird -f &
+[ -f "/etc/bird-static.conf" ] && /usr/sbin/bird -f &
 
 cd /
 # Initialize git repository
