@@ -21,5 +21,6 @@ RUN PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
     && rm -rf /usr/share/man /usr/local/share/man \
     && PKG_UNINSTALL(APP_BUILD_TOOLS)
 ADD bird.conf /etc/bird.conf
+ADD healthcheck.sh /
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD [ "sh", "/healthcheck.sh" ]
 ENTRYPOINT ["/usr/sbin/bird", "-f"]
