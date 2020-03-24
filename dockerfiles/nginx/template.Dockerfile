@@ -112,7 +112,7 @@ RUN cd /tmp \
 #else
     && PKG_UNINSTALL(APP_BUILD_TOOLS) \
 #endif
-    && cd / && rm -rf /tmp/* \
+    && cd / && FINAL_CLEANUP() \
     && ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx
 #EXPOSE 80 443
 ENTRYPOINT ["/usr/sbin/nginx"]
