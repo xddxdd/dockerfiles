@@ -3,19 +3,19 @@
 #include "env.Dockerfile"
 
 #if defined(ARCH_RISCV64)
-#define APP_DEPS libpcre3 zlib1g libgd3 util-linux binutils libzstd1
+#define APP_DEPS libpcre3 zlib1g libgd3 util-linux libzstd1
 #else
-#define APP_DEPS libpcre3 zlib1g libatomic-ops-dev libgd3 util-linux binutils libzstd1
+#define APP_DEPS libpcre3 zlib1g libatomic-ops-dev libgd3 util-linux libzstd1
 #endif
 
 #if defined(ARCH_AMD64)
-#define APP_BUILD_TOOLS build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch LINUX_HEADERS cmake
+#define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch LINUX_HEADERS cmake
 #define APP_BUILD_TOOLS_UNSTABLE rustc cargo golang-go
 #else
-#define APP_BUILD_TOOLS build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch LINUX_HEADERS
+#define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch LINUX_HEADERS
 #endif
 
-ENV NGINX_VERSION=1.17.9 OPENSSL_VERSION=1.1.1d QUICHE_VERSION=2f2dfab
+ENV NGINX_VERSION=1.17.9 OPENSSL_VERSION=1.1.1e QUICHE_VERSION=2f2dfab
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
