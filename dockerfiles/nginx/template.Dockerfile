@@ -51,8 +51,8 @@ RUN cd /tmp \
     && wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
       && tar xf openssl-${OPENSSL_VERSION}.tar.gz \
       && cd /tmp/openssl-${OPENSSL_VERSION} \
-      && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1d.patch) \
-      && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-1.1.1d-chacha_draft.patch) \
+      && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1e-dev.patch) \
+      && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-1.1.1e-dev-chacha_draft.patch) \
       && cd /tmp \
 #endif
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
