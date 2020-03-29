@@ -15,7 +15,7 @@
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch LINUX_HEADERS
 #endif
 
-ENV NGINX_VERSION=1.17.9 OPENSSL_VERSION=1.1.1d QUICHE_VERSION=2f2dfab
+ENV NGINX_VERSION=1.17.9 OPENSSL_VERSION=1.1.1e QUICHE_VERSION=2f2dfab
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
@@ -50,13 +50,10 @@ RUN cd /tmp \
 #if !defined(ARCH_AMD64)
     && wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
       && tar xf openssl-${OPENSSL_VERSION}.tar.gz \
-      && cd /tmp/openssl-${OPENSSL_VERSION} \
-      && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1d.patch) \
-      && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-1.1.1d-chacha_draft.patch) \
-      && cd /tmp \
 #endif
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
     && git clone https://github.com/tokers/zstd-nginx-module.git \
+    && git clone https://github.com/vozlt/nginx-module-vts.git \
     && cd /tmp/nginx-${NGINX_VERSION} \
 #ifdef ARCH_I386
     && setarch i386 ./configure \
@@ -86,6 +83,7 @@ RUN cd /tmp \
        --add-module=/tmp/ngx_brotli \
        --add-module=/tmp/headers-more-nginx-module \
        --add-module=/tmp/zstd-nginx-module \
+       --add-module=/tmp/nginx-module-vts \
 #if defined(ARCH_AMD64)
        --with-http_v3_module \
        --with-openssl=/tmp/quiche/deps/boringssl \
