@@ -29,4 +29,5 @@ FROM xddxdd/debian-x32:latest
 #endif
 
 #define PKG_INSTALL(pkgs) apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y pkgs
-#define PKG_UNINSTALL(pkgs) apt-get -qq purge -y pkgs && apt-get -qq autoremove --purge -y && apt-get clean && rm -rf /var/lib/apt/lists
+#define PKG_UNINSTALL(pkgs) apt-get -qq purge -y pkgs && PKG_CLEANUP()
+#define PKG_CLEANUP() apt-get -qq autoremove --purge -y && apt-get clean && rm -rf /var/lib/apt/lists

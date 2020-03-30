@@ -18,3 +18,4 @@ FROM s390x/alpine:edge
 
 #define PKG_INSTALL(pkgs) apk add -q --no-cache pkgs
 #define PKG_UNINSTALL(pkgs) apk del -q --purge pkgs
+#define PKG_CLEANUP()
