@@ -7,9 +7,9 @@
 #define FINAL_CLEANUP() PKG_CLEANUP() \
     && EMPTY(/root) \
     && EMPTY(/tmp) \
-    && EMPTY(/usr/local/share/doc) \
-    && EMPTY(/usr/local/share/man) \
-    && EMPTY(/usr/share/doc) \
-    && EMPTY(/usr/share/man) \
+    && rm -rf /usr/local/share/doc \
+    && rm -rf /usr/local/share/man \
+    && rm -rf /usr/share/doc \
+    && rm -rf /usr/share/man \
     && EMPTY(/var/cache) \
     && EMPTY(/var/log)
