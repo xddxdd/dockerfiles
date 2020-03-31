@@ -15,7 +15,7 @@
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch LINUX_HEADERS
 #endif
 
-ENV NGINX_VERSION=1.17.9 OPENSSL_VERSION=1.1.1e QUICHE_VERSION=2f2dfab
+ENV NGINX_VERSION=1.17.9 OPENSSL_VERSION=1.1.1f QUICHE_VERSION=dacad7f
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
@@ -40,6 +40,7 @@ RUN cd /tmp \
 #endif
       && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/nginx_strict-sni_1.15.10.patch) \
       && PATCH(https://gist.github.com/CarterLi/f6e21d4749984a255edc7b358b44bf58/raw/4a7ad66a9a29ffade34d824549ed663bc4b5ac98/use_openssl_md5_sha1.diff) \
+      && PATCH(https://raw.githubusercontent.com/kn007/patch/35f2b0decbc510f2c8adab9261e3d46ba1398e33/Enable_BoringSSL_OCSP.patch) \
       && cd /tmp \
     && git clone https://github.com/eustas/ngx_brotli.git \
       && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
