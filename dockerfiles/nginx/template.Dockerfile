@@ -39,8 +39,8 @@ RUN cd /tmp \
       && PATCH_LOCAL(/tmp/nginx-spdy-patch.patch) \
 #endif
       && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/nginx_strict-sni_1.15.10.patch) \
-      && PATCH(https://gist.github.com/CarterLi/f6e21d4749984a255edc7b358b44bf58/raw/4a7ad66a9a29ffade34d824549ed663bc4b5ac98/use_openssl_md5_sha1.diff) \
-      && PATCH(https://raw.githubusercontent.com/kn007/patch/35f2b0decbc510f2c8adab9261e3d46ba1398e33/Enable_BoringSSL_OCSP.patch) \
+      && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
+      && PATCH(https://github.com/kn007/patch/raw/master/Enable_BoringSSL_OCSP.patch) \
       && cd /tmp \
     && git clone https://github.com/eustas/ngx_brotli.git \
       && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
