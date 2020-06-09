@@ -1,5 +1,5 @@
 #include "common.Dockerfile"
-#include "image/debian_buster.Dockerfile"
+#include "image/debian_sid.Dockerfile"
 #include "env.Dockerfile"
 
 #if defined(ARCH_RISCV64)
@@ -9,31 +9,29 @@
 #endif
 
 #if defined(ARCH_AMD64)
-#define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch LINUX_HEADERS cmake
-#define APP_BUILD_TOOLS_UNSTABLE rustc cargo golang-go
+#define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch LINUX_HEADERS cmake rustc cargo golang-go
 #else
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch LINUX_HEADERS
 #endif
 
-ENV NGINX_VERSION=1.17.10 OPENSSL_VERSION=1.1.1g QUICHE_VERSION=1c5fe75
+ENV NGINX_VERSION=1.19.0 OPENSSL_VERSION=1.1.1g QUICHE_VERSION=98757ca
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
-#if defined(ARCH_AMD64)
-    && sh -c "echo \"deb http://deb.debian.org/debian/ unstable main\" > /etc/apt/sources.list.d/unstable.list" \
-    && sh -c "printf \"Package: *\nPin: release a=unstable\nPin-Priority: 90\n\" > /etc/apt/preferences.d/limit-unstable" \
-    && PKG_INSTALL(APP_BUILD_TOOLS_UNSTABLE) -t unstable \
-    && git clone --recursive https://github.com/cloudflare/quiche \
+    && cd /tmp \
+    && git clone https://github.com/cloudflare/quiche \
       && cd /tmp/quiche \
       && git checkout ${QUICHE_VERSION} \
+      && PATCH_LOCAL(/tmp/quiche-tls-add-feature-to-build-against-OpenSSL.patch) \
       && cd /tmp \
-#endif
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
       && tar xf nginx-${NGINX_VERSION}.tar.gz \
       && cd /tmp/nginx-${NGINX_VERSION} \
 #if defined(ARCH_AMD64)
       && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_quic.patch) \
       && PATCH_LOCAL(/tmp/nginx-spdy-patch-quic-aware.patch) \
+      && PATCH_LOCAL(/tmp/nginx-1.17.10-quiche-remove_opennssl_make_fix.patch) \
+      && PATCH_LOCAL(/tmp/nginx-quiche-openssl-feature.patch) \
 #else
       && PATCH(https://github.com/kn007/patch/raw/master/nginx.patch) \
       && PATCH_LOCAL(/tmp/nginx-spdy-patch.patch) \
@@ -48,10 +46,25 @@ RUN cd /tmp \
       && git clone https://github.com/cloudflare/zlib.git \
       && cd /tmp/zlib && make -f Makefile.in distclean && cd /tmp \
 #endif
-#if !defined(ARCH_AMD64)
     && wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
       && tar xf openssl-${OPENSSL_VERSION}.tar.gz \
+      && mv /tmp/openssl-${OPENSSL_VERSION} /tmp/openssl \
+      && cd /tmp/openssl \
+#if defined(ARCH_AMD64)
+      && PATCH_LOCAL(/tmp/patch-openssl/0001-Add-support-for-BoringSSL-QUIC-APIs.patch) \
+      && PATCH_LOCAL(/tmp/patch-openssl/0002-Fix-resumption-secret.patch) \
+      && PATCH_LOCAL(/tmp/patch-openssl/0003-QUIC-Handle-EndOfEarlyData-and-MaxEarlyData.patch) \
+      && PATCH_LOCAL(/tmp/patch-openssl/0004-QUIC-Increase-HKDF_MAXBUF-to-2048.patch) \
+      && PATCH_LOCAL(/tmp/patch-openssl/0005-Fall-through-for-0RTT.patch) \
+      && PATCH_LOCAL(/tmp/patch-openssl/0006-Some-cleanup-for-the-main-QUIC-changes.patch) \
+      && PATCH_LOCAL(/tmp/patch-openssl/0007-Prevent-KeyUpdate-for-QUIC.patch) \
+      && PATCH_LOCAL(/tmp/patch-openssl/0008-Test-KeyUpdate-rejection.patch) \
+      && PATCH_LOCAL(/tmp/patch-openssl/0009-Fix-out-of-bounds-read-when-TLS-msg-is-split-up-into.patch) \
+      && PATCH_LOCAL(/tmp/patch-openssl/0001-update-quice-method.patch) \
+      && PATCH_LOCAL(/tmp/patch-openssl/fupdatesetread.patch) \
+      && PATCH_LOCAL(/tmp/patch-openssl/openssl-1.1.1e-sess_set_get_cb_yield.patch) \
 #endif
+      && cd /tmp \
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
     && git clone https://github.com/tokers/zstd-nginx-module.git \
     && git clone https://github.com/vozlt/nginx-module-vts.git \
@@ -87,15 +100,13 @@ RUN cd /tmp \
        --add-module=/tmp/nginx-module-vts \
 #if defined(ARCH_AMD64)
        --with-http_v3_module \
-       --with-openssl=/tmp/quiche/deps/boringssl \
        --with-quiche=/tmp/quiche \
-#else
-       --with-openssl=/tmp/openssl-${OPENSSL_VERSION} \
 #endif
-#if defined(ARCH_ARM64V8)
-       --with-openssl-opt="zlib no-tests enable-ec_nistp_64_gcc_128 enable-tls1_3" \
-#elif !defined(ARCH_AMD64)
-       --with-openssl-opt="zlib no-tests enable-tls1_3" \
+       --with-openssl=/tmp/openssl \
+#if defined(ARCH_AMD64) || defined(ARCH_ARM64V8)
+       --with-openssl-opt="zlib no-tests enable-ec_nistp_64_gcc_128" \
+#else
+       --with-openssl-opt="zlib no-tests" \
 #endif
        --with-cc-opt="-O3 -flto -fPIC -fPIE -fstack-protector-strong -Wformat -Werror=format-security -Wno-deprecated-declarations -Wno-strict-aliasing" \
 #ifdef ARCH_I386
@@ -106,11 +117,7 @@ RUN cd /tmp \
     && make install \
 #endif
     && strip /usr/local/nginx/sbin/* \
-#if defined(ARCH_AMD64)
-    && PKG_UNINSTALL(APP_BUILD_TOOLS APP_BUILD_TOOLS_UNSTABLE) \
-#else
     && PKG_UNINSTALL(APP_BUILD_TOOLS) \
-#endif
     && cd / && FINAL_CLEANUP() \
     && ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx
 #EXPOSE 80 443

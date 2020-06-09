@@ -1,0 +1,323 @@
+From a72723a1b8e3c3e5bafaa4291bffe4af26ec4acd Mon Sep 17 00:00:00 2001
+From: baul <roidinev@gmail.com>
+Date: Wed, 20 May 2020 10:25:42 +0000
+Subject: [PATCH] tls: add feature to build against OpenSSL
+
+---
+ Cargo.toml   |   4 ++
+ src/build.rs |  10 +++-
+ src/lib.rs   |  33 ++++++++++++
+ src/tls.rs   | 140 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 186 insertions(+), 1 deletion(-)
+
+diff --git a/Cargo.toml b/Cargo.toml
+index 63d9b9b..3baf28a 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -37,6 +37,9 @@ default = ["boringssl-vendored"]
+ # Build vendored BoringSSL library.
+ boringssl-vendored = []
+ 
++# Build quiche against OpenSSl instead of BoringSSL
++openssl = ["pkg-config"]
++
+ # Generate pkg-config metadata file for libquiche.
+ pkg-config-meta = []
+ 
+@@ -51,6 +54,7 @@ default-features = false
+ 
+ [build-dependencies]
+ cmake = "0.1"
++pkg-config = { version = "0.3", optional = true }
+ 
+ [dependencies]
+ log = { version = "0.4", features = ["std"] }
+diff --git a/src/build.rs b/src/build.rs
+index 7a5ae27..06f3f46 100644
+--- a/src/build.rs
++++ b/src/build.rs
+@@ -176,7 +176,7 @@ Cflags: -I${{includedir}}
+ }
+ 
+ fn main() {
+-    if cfg!(feature = "boringssl-vendored") {
++    if cfg!(feature = "boringssl-vendored") && !cfg!(feature = "openssl") {
+         let bssl_dir = std::env::var("QUICHE_BSSL_PATH").unwrap_or_else(|_| {
+             let mut cfg = get_boringssl_cmake_config();
+ 
+@@ -203,6 +203,14 @@ fn main() {
+     if cfg!(target_os = "macos") {
+         println!("cargo:rustc-cdylib-link-arg=-Wl,-undefined,dynamic_lookup");
+     }
++    if cfg!(feature = "openssl") {
++        #[cfg(feature = "openssl")]
++        pkg_config::probe_library("libcrypto").unwrap();
++
++        #[cfg(feature = "openssl")]
++        pkg_config::probe_library("libssl").unwrap();
++    }
++
+ 
+     if cfg!(feature = "pkg-config-meta") {
+         write_pkg_config();
+diff --git a/src/lib.rs b/src/lib.rs
+index 170895d..8c8d049 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -3003,6 +3003,7 @@ impl Connection {
+     /// Continues the handshake.
+     ///
+     /// If the connection is already established, it does nothing.
++    #[cfg(not(feature = "openssl"))]
+     fn do_handshake(&mut self) -> Result<()> {
+         // Handshake is already complete, there's nothing to do.
+         if self.is_established() {
+@@ -3036,6 +3037,38 @@ impl Connection {
+         Ok(())
+     }
+ 
++    #[cfg(feature = "openssl")]
++    fn do_handshake(&mut self) -> Result<()> {
++        // Handshake is already complete, there's nothing to do.
++        if self.is_established() {
++            return Ok(());
++        }
++
++        match self.handshake.do_handshake() {
++            Ok(_) => (),
++
++            Err(Error::Done) => return Ok(()),
++
++            Err(e) => return Err(e),
++        };
++
++        if self.application_proto().is_empty() {
++            // Send no_application_proto TLS alert when no protocol
++            // can be negotiated.
++            self.error = Some(0x178);
++            return Err(Error::TlsFail);
++        }
++
++        trace!("{} connection established: proto={:?} cipher={:?} curve sigalg resumed={} {:?}",
++               &self.trace_id,
++               std::str::from_utf8(self.application_proto()),
++               self.handshake.cipher(),
++               self.is_resumed(),
++               self.peer_transport_params);
++
++        Ok(())
++    }
++
+     /// Selects the packet number space for outgoing packets.
+     fn write_epoch(&self) -> Result<packet::Epoch> {
+         // On error send packet in the latest epoch available, but only send
+diff --git a/src/tls.rs b/src/tls.rs
+index dbad6a2..f733011 100644
+--- a/src/tls.rs
++++ b/src/tls.rs
+@@ -443,6 +443,7 @@ impl Handshake {
+         get_cipher_from_ptr(cipher.ok()?).ok()
+     }
+ 
++    #[cfg(not(feature = "openssl"))]
+     pub fn curve(&self) -> Option<String> {
+         let curve = unsafe {
+             let curve_id = SSL_get_curve_id(self.as_ptr());
+@@ -461,6 +462,7 @@ impl Handshake {
+         Some(curve.to_string())
+     }
+ 
++    #[cfg(not(feature = "openssl"))]
+     pub fn sigalg(&self) -> Option<String> {
+         let sigalg = unsafe {
+             let sigalg_id = SSL_get_peer_signature_algorithm(self.as_ptr());
+@@ -937,9 +939,11 @@ extern {
+         arg: *mut c_void,
+     );
+ 
++    #[cfg(not(feature = "openssl"))]
+     fn SSL_CTX_set_early_data_enabled(ctx: *mut SSL_CTX, enabled: i32);
+ 
+     // SSL
++    #[cfg(not(feature = "openssl"))]
+     fn SSL_get_ex_new_index(
+         argl: c_long, argp: *const c_void, unused: *const c_void,
+         dup_unused: *const c_void, free_func: *const c_void,
+@@ -959,21 +963,28 @@ extern {
+ 
+     fn SSL_get_current_cipher(ssl: *mut SSL) -> *const SSL_CIPHER;
+ 
++    #[cfg(not(feature = "openssl"))]
+     fn SSL_get_curve_id(ssl: *mut SSL) -> u16;
++    #[cfg(not(feature = "openssl"))]
+     fn SSL_get_curve_name(curve: u16) -> *const c_char;
+ 
++    #[cfg(not(feature = "openssl"))]
+     fn SSL_get_peer_signature_algorithm(ssl: *mut SSL) -> u16;
++    #[cfg(not(feature = "openssl"))]
+     fn SSL_get_signature_algorithm_name(
+         sigalg: u16, include_curve: i32,
+     ) -> *const c_char;
+ 
+     fn SSL_get_peer_certificate(ssl: *mut SSL) -> *const X509;
+ 
++    #[cfg(not(feature = "openssl"))]
+     fn SSL_set_min_proto_version(ssl: *mut SSL, version: u16);
++    #[cfg(not(feature = "openssl"))]
+     fn SSL_set_max_proto_version(ssl: *mut SSL, version: u16);
+ 
+     fn SSL_set_quiet_shutdown(ssl: *mut SSL, mode: c_int);
+ 
++    #[cfg(not(feature = "openssl"))]
+     fn SSL_set_tlsext_host_name(ssl: *mut SSL, name: *const c_char) -> c_int;
+ 
+     fn SSL_set_quic_transport_params(
+@@ -1004,10 +1015,16 @@ extern {
+ 
+     fn SSL_in_init(ssl: *mut SSL) -> c_int;
+ 
++    #[cfg(not(feature = "openssl"))]
+     fn SSL_in_early_data(ssl: *mut SSL) -> c_int;
+ 
+     fn SSL_clear(ssl: *mut SSL) -> c_int;
+ 
++    #[cfg(feature = "openssl")]
++    fn SSL_ctrl(
++        ssl: *mut SSL, cmd: c_int, larg: c_long, parg: *mut c_void,
++    ) -> c_int;
++
+     fn SSL_free(ssl: *mut SSL);
+ 
+     // SSL_CIPHER
+@@ -1036,5 +1053,128 @@ extern {
+     fn ERR_error_string_n(err: c_uint, buf: *const u8, len: usize);
+ 
+     // OPENSSL
++    #[cfg(not(feature = "openssl"))]
+     fn OPENSSL_free(ptr: *mut c_void);
++
++    // CRYPTO
++    #[cfg(feature = "openssl")]
++    fn CRYPTO_get_ex_new_index(
++        class_index: c_int, argl: c_long, argp: *const c_void,
++        new_func: *const c_void, dup_func: *const c_void,
++        free_func: *const c_void,
++    ) -> c_int;
++
++    #[cfg(feature = "openssl")]
++    fn CRYPTO_free(
++        addr: *mut c_void, openssl_file: *const c_char,
++        openssl_line: c_int,
++    );
++   // void CRYPTO_free(void *str, const char *file, int line)
++    #[cfg(feature = "openssl")]
++   // int SSL_CTX_set_max_early_data(SSL_CTX *ctx, uint32_t max_early_data);
++    fn SSL_CTX_set_max_early_data(ctx: *mut SSL_CTX, max_early_data: u32);
++
++
++    #[cfg(feature = "openssl")]
++    // int SSL_is_init_finished(const SSL *s)
++    fn SSL_is_init_finished(s: *mut SSL) -> c_int;
++
++}
++
++
++// OpenSSL compatibility functions.
++//
++// These don't 100% follow the OpenSSL API (e.g. some arguments have slightly
++// different types) in order to make them compatible with the BoringSSL API.
++
++#[cfg(feature = "openssl")]
++#[allow(non_snake_case)]
++unsafe fn SSL_set_min_proto_version(s: *mut SSL, version: u16) {
++    const SSL_CTRL_SET_MIN_PROTO_VERSION: c_int = 123;
++
++    SSL_ctrl(
++        s,
++        SSL_CTRL_SET_MIN_PROTO_VERSION,
++        version as c_long,
++        ptr::null_mut(),
++    );
++}
++
++#[cfg(feature = "openssl")]
++#[allow(non_snake_case)]
++unsafe fn SSL_set_max_proto_version(s: *mut SSL, version: u16) {
++    const SSL_CTRL_SET_MAX_PROTO_VERSION: c_int = 124;
++
++    SSL_ctrl(
++        s,
++        SSL_CTRL_SET_MAX_PROTO_VERSION,
++        version as c_long,
++        ptr::null_mut(),
++    );
++}
++
++#[cfg(feature = "openssl")]
++#[allow(non_snake_case)]
++unsafe fn SSL_set_tlsext_host_name(s: *mut SSL, name: *const c_char) -> c_int {
++    const SSL_CTRL_SET_TLSEXT_HOSTNAME: c_int = 55;
++
++    #[allow(non_upper_case_globals)]
++    const TLSEXT_NAMETYPE_host_name: c_long = 0;
++
++    SSL_ctrl(
++        s,
++        SSL_CTRL_SET_TLSEXT_HOSTNAME,
++        TLSEXT_NAMETYPE_host_name,
++        name as *mut c_void,
++    )
++}
++
++#[cfg(feature = "openssl")]
++#[allow(non_snake_case)]
++unsafe fn OPENSSL_free(ptr: *mut c_void) {
++    // const OPENSSL_FILE: *const c_char = "";
++    // const OPENSSL_FILE: *const  c_char = "";
++    let cstr = ffi::CString::new("").map_err(|_| Error::TlsFail).unwrap();
++    let  OPENSSL_LINE: c_int = 0;
++    CRYPTO_free(ptr, cstr.as_ptr() as *const i8 , OPENSSL_LINE);
++}
++
++#[cfg(feature = "openssl")]
++#[allow(non_snake_case)]
++unsafe fn SSL_CTX_set_early_data_enabled(ctx: *mut SSL_CTX, enabled: i32) {
++    if enabled == 0 {
++        return;
++    }
++    SSL_CTX_set_max_early_data(ctx,  16384);
++}
++
++#[cfg(feature = "openssl")]
++#[allow(non_snake_case)]
++unsafe fn SSL_in_early_data(ssl: *mut SSL) -> c_int {
++    // SSL_is_init_finished(c->ssl->connection)
++    // !SSL_is_init_finished(ssl.as_ptr())
++    !SSL_is_init_finished(ssl)
++}
++
++#[cfg(feature = "openssl")]
++#[allow(non_snake_case)]
++unsafe fn SSL_get_ex_new_index(
++    argl: c_long, argp: *const c_void, newf: *const c_void, dupf: *const c_void,
++    freef: *const c_void,
++) -> c_int {
++    const CRYPTO_EX_INDEX_SSL: c_int = 0;
++
++    CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_SSL, argl, argp, newf, dupf, freef)
+ }
++// 
++// #[cfg(feature = "openssl")]
++// unsafe fn SSL_get_peer_signature_algorithm(ssl: *mut SSL) -> u16 {
++// }
++// 
++// #[cfg(feature = "openssl")]
++// unsafe fn SSL_get_signature_algorithm_name(
++//     sigalg: u16, include_curve: i32,
++// ) -> *const c_char {
++// }
++// 
++// 
+-- 
+2.25.1
+

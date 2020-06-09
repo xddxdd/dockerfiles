@@ -1,0 +1,40 @@
+From a77359e0c0a4df2bea8ca6518d4727d8626cee2c Mon Sep 17 00:00:00 2001
+From: baul <roidinev@gmail.com>
+Date: Fri, 22 May 2020 00:47:00 +0000
+Subject: [PATCH] update quice method
+
+---
+ include/openssl/ssl.h | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/include/openssl/ssl.h b/include/openssl/ssl.h
+index f21458cd5e..e530d4df04 100644
+--- a/include/openssl/ssl.h
++++ b/include/openssl/ssl.h
+@@ -2445,15 +2445,19 @@ typedef enum ssl_encryption_level_t {
+     ssl_encryption_handshake,
+     ssl_encryption_application
+ } OSSL_ENCRYPTION_LEVEL;
++/* from quiche impl */
+ 
+ struct ssl_quic_method_st {
+-    int (*set_encryption_secrets)(SSL *ssl, OSSL_ENCRYPTION_LEVEL level,
+-                                  const uint8_t *read_secret,
+-                                  const uint8_t *write_secret, size_t secret_len);
++    int (*set_read_secret)(SSL *ssl, OSSL_ENCRYPTION_LEVEL level,
++                         const SSL_CIPHER *cipher, const uint8_t *secret,
++                         size_t secret_len);    
++    int (*set_write_secret)(SSL *ssl, OSSL_ENCRYPTION_LEVEL level,
++                          const SSL_CIPHER *cipher, const uint8_t *secret,
++                          size_t secret_len);    
+     int (*add_handshake_data)(SSL *ssl, OSSL_ENCRYPTION_LEVEL level,
+                               const uint8_t *data, size_t len);
+     int (*flush_flight)(SSL *ssl);
+-    int (*send_alert)(SSL *ssl, enum ssl_encryption_level_t level, uint8_t alert);
++    int (*send_alert)(SSL *ssl, OSSL_ENCRYPTION_LEVEL level, uint8_t alert);
+ };
+ 
+ __owur int SSL_CTX_set_quic_method(SSL_CTX *ctx, const SSL_QUIC_METHOD *quic_method);
+-- 
+2.25.1
+

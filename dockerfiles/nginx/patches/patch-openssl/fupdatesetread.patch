@@ -1,0 +1,188 @@
+diff --git a/ssl/ssl_quic.c b/ssl/ssl_quic.c
+index bcf4657e91..62297d6f02 100644
+--- a/ssl/ssl_quic.c
++++ b/ssl/ssl_quic.c
+@@ -231,6 +231,7 @@ int SSL_set_quic_method(SSL *ssl, const SSL_QUIC_METHOD *quic_method)
+     return 1;
+ }
+ 
++// new api 
+ int quic_set_encryption_secrets(SSL *ssl, OSSL_ENCRYPTION_LEVEL level)
+ {
+     uint8_t *c2s_secret = NULL;
+@@ -258,25 +259,27 @@ int quic_set_encryption_secrets(SSL *ssl, OSSL_ENCRYPTION_LEVEL level)
+         return 1;
+     }
+ 
++    const SSL_CIPHER *c = NULL;
++
++    /*
++     * It probably doesn't make sense to use an (external) PSK session,
++     * but in theory some kinds of external session caches could be
++     * implemented using it, so allow psksession to be used as well as
++     * the regular session.
++     */
++    if (ssl->session != NULL)
++        c = SSL_SESSION_get0_cipher(ssl->session);
++    else if (ssl->psksession != NULL)
++            c = SSL_SESSION_get0_cipher(ssl->psksession);
++
++
+     md = ssl_handshake_md(ssl);
+     if (md == NULL) {
+         /* May not have selected cipher, yet */
+-        const SSL_CIPHER *c = NULL;
+-
+-        /*
+-         * It probably doesn't make sense to use an (external) PSK session,
+-         * but in theory some kinds of external session caches could be
+-         * implemented using it, so allow psksession to be used as well as
+-         * the regular session.
+-         */
+-        if (ssl->session != NULL)
+-            c = SSL_SESSION_get0_cipher(ssl->session);
+-        else if (ssl->psksession != NULL)
+-            c = SSL_SESSION_get0_cipher(ssl->psksession);
+-
+         if (c != NULL)
+             md = SSL_CIPHER_get_handshake_digest(c);
+     }
++	   
+ 
+     if ((len = EVP_MD_size(md)) <= 0) {
+         SSLfatal(ssl, SSL_AD_INTERNAL_ERROR, SSL_F_QUIC_SET_ENCRYPTION_SECRETS,
+@@ -284,25 +287,53 @@ int quic_set_encryption_secrets(SSL *ssl, OSSL_ENCRYPTION_LEVEL level)
+         return 0;
+     }
+ 
+-    if (ssl->server) {
+-        if (!ssl->quic_method->set_encryption_secrets(ssl, level, c2s_secret,
+-                                                      s2c_secret, len)) {
++    if (ssl->server) { 
++	//when client read or server write, then if server here, will set write
++	//secret for server, read secret for client.
++	//when client write or server read, then if server here, will set write
++	//secret for client, read secret for server.
++	
++	// first c2s as read secret, second as write secrect. 
++	// for server write ,now need enc the server traffic which is s2c_write...
++	// need read client traffic ,so need c2s read secrect... 
++	
++	    
++        if (!ssl->quic_method->set_read_secret(ssl, level, c, c2s_secret, len)) 
++	{
++            SSLfatal(ssl, SSL_AD_INTERNAL_ERROR, SSL_F_QUIC_SET_ENCRYPTION_SECRETS,
++                     ERR_R_INTERNAL_ERROR);
++            return 0;
++        }
++        if (!ssl->quic_method->set_write_secret(ssl, level, c, s2c_secret, len)) 
++	{
+             SSLfatal(ssl, SSL_AD_INTERNAL_ERROR, SSL_F_QUIC_SET_ENCRYPTION_SECRETS,
+                      ERR_R_INTERNAL_ERROR);
+             return 0;
+         }
+     } else {
+-        if (!ssl->quic_method->set_encryption_secrets(ssl, level, s2c_secret,
+-                                                      c2s_secret, len)) {
++	//when client read or server write branch call this fun, then if 
++	//client here, will set write secret for server, read secret for client.
++	//when client write or server read,                      then if
++	//client here, will set write secret for client, read secret for server.
++	
++	    
++        if (!ssl->quic_method->set_read_secret(ssl, level, c, s2c_secret, len)) 
++	{
++            SSLfatal(ssl, SSL_AD_INTERNAL_ERROR, SSL_F_QUIC_SET_ENCRYPTION_SECRETS,
++                     ERR_R_INTERNAL_ERROR);
++            return 0;
++        }
++        if (!ssl->quic_method->set_write_secret(ssl, level, c, c2s_secret, len)) 
++	{
+             SSLfatal(ssl, SSL_AD_INTERNAL_ERROR, SSL_F_QUIC_SET_ENCRYPTION_SECRETS,
+                      ERR_R_INTERNAL_ERROR);
+             return 0;
+         }
+     }
+ 
++
+     return 1;
+ }
+-
+ int SSL_process_quic_post_handshake(SSL *ssl)
+ {
+     int ret;
+diff --git a/ssl/tls13_enc.c b/ssl/tls13_enc.c
+index b0068bc95a..de5d0640f0 100644
+--- a/ssl/tls13_enc.c
++++ b/ssl/tls13_enc.c
+@@ -475,6 +475,7 @@ static int quic_change_cipher_state(SSL *s, int which)
+                  ERR_R_EVP_LIB);
+         goto err;
+     }
++    // will use this hashleni or hashlenu to 
+     hashlen = (size_t)hashleni;
+ 
+     if (is_client_read || is_server_write) {
+@@ -551,6 +552,7 @@ static int quic_change_cipher_state(SSL *s, int which)
+         /* is_client_write || is_server_read */
+ 
+         if (is_early) {
++           		
+             level = ssl_encryption_early_data;
+ 
+             if (!tls13_hkdf_expand(s, md, s->early_secret, client_early_traffic,
+@@ -563,6 +565,8 @@ static int quic_change_cipher_state(SSL *s, int which)
+                 /* SSLfatal() already called */
+                 goto err;
+             }
++	    // in boringssl for ealy level ,no set cipher, not set level in s-> ssl->3->write_>level,
++	    // not memset ssl->s3->write_sequnece 
+         } else if (is_handshake) {
+             level = ssl_encryption_handshake;
+         } else {
+diff --git a/test/sslapitest.c b/test/sslapitest.c
+index 3a5d1c99e4..e711adf8b2 100644
+--- a/test/sslapitest.c
++++ b/test/sslapitest.c
+@@ -6473,16 +6473,24 @@ static int test_servername(int tst)
+ 
+ #ifndef OPENSSL_NO_QUIC
+ 
+-static int test_quic_set_encryption_secrets(SSL *ssl,
+-                                            OSSL_ENCRYPTION_LEVEL level,
+-                                            const uint8_t *read_secret,
+-                                            const uint8_t *write_secret,
+-                                            size_t secret_len)
++static  int test_quic_set_read_secret(SSL *ssl, OSSL_ENCRYPTION_LEVEL level,
++                        const SSL_CIPHER *cipher, const uint8_t *secret,
++                        size_t secret_len)
+ {
+-    test_printf_stderr("quic_set_encryption_secrets() %s, lvl=%d, len=%zd\n",
++
++    test_printf_stderr("set_read_secret() %s, lvl=%d, len=%zd\n",
+                        ssl->server ? "server" : "client", level, secret_len);
+     return 1;
+ }
++static  int test_quic_set_write_secret(SSL *ssl, OSSL_ENCRYPTION_LEVEL level,
++                         const SSL_CIPHER *cipher, const uint8_t *secret,
++                          size_t secret_len)
++{
++    test_printf_stderr("set_write_secret() %s, lvl=%d, len=%zd\n",
++                       ssl->server ? "server" : "client", level, secret_len);
++    return 1;
++}	
++ 
+ static int test_quic_add_handshake_data(SSL *ssl, OSSL_ENCRYPTION_LEVEL level,
+                                         const uint8_t *data, size_t len)
+ {
+@@ -6514,7 +6522,9 @@ static int test_quic_send_alert(SSL *ssl, enum ssl_encryption_level_t level, uin
+ }
+ 
+ static SSL_QUIC_METHOD quic_method = {
+-    test_quic_set_encryption_secrets,
++    test_quic_set_read_secret,
++    test_quic_set_write_secret,
++//    test_quic_set_encryption_secrets,
+     test_quic_add_handshake_data,
+     test_quic_flush_flight,
+     test_quic_send_alert,

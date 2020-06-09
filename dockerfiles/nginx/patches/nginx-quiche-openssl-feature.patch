@@ -1,0 +1,27 @@
+--- a/auto/lib/quiche/make
++++ b/auto/lib/quiche/make
+@@ -3,12 +3,14 @@
+ 
+ 
+ # Default is release build
+-QUICHE_BUILD_FLAGS="--release --no-default-features"
++QUICHE_BUILD_FLAGS="--release --no-default-features --features openssl"
+ QUICHE_BUILD_TARGET="release"
++OPENSSL_PATH="/tmp/openssl"
+ 
+ if [ $NGX_DEBUG = YES ]; then
+-    QUICHE_BUILD_FLAGS="--no-default-features"
++    QUICHE_BUILD_FLAGS="--no-default-features --features openssl"
+     QUICHE_BUILD_TARGET="debug"
++    OPENSSL_PATH="/tmp/openssl"
+ fi
+ 
+ 
+@@ -17,6 +19,6 @@
+ $QUICHE/target/$QUICHE_BUILD_TARGET/libquiche.a: \\
+ 		$OPENSSL/.openssl/include/openssl/ssl.h \\
+ 		$NGX_MAKEFILE
+-	cd $QUICHE && cargo build $QUICHE_BUILD_FLAGS
++	cd $QUICHE && export PKG_CONFIG_PATH=$OPENSSL_PATH && export LD_LIBRARY_PATH=$OPENSSL_PATH && cargo build $QUICHE_BUILD_FLAGS
+ 
+ END
