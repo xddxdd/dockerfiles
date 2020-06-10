@@ -5,13 +5,13 @@
  
  # Default is release build
 -QUICHE_BUILD_FLAGS="--release --no-default-features"
-+QUICHE_BUILD_FLAGS="--release --no-default-features --features openssl"
++QUICHE_BUILD_FLAGS="--release --no-default-features --features openssl,qlog"
  QUICHE_BUILD_TARGET="release"
 +OPENSSL_PATH="/tmp/openssl"
  
  if [ $NGX_DEBUG = YES ]; then
 -    QUICHE_BUILD_FLAGS="--no-default-features"
-+    QUICHE_BUILD_FLAGS="--no-default-features --features openssl"
++    QUICHE_BUILD_FLAGS="--no-default-features --features openssl,qlog"
      QUICHE_BUILD_TARGET="debug"
 +    OPENSSL_PATH="/tmp/openssl"
  fi

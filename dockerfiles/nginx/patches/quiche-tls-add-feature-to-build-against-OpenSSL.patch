@@ -285,7 +285,7 @@ index dbad6a2..f733011 100644
 +    if enabled == 0 {
 +        return;
 +    }
-+    SSL_CTX_set_max_early_data(ctx,  16384);
++    SSL_CTX_set_max_early_data(ctx, 0xFFFFFFFF);
 +}
 +
 +#[cfg(feature = "openssl")]

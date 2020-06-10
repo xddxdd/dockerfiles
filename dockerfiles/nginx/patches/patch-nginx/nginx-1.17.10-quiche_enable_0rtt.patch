@@ -1,0 +1,133 @@
+diff --git a/src/event/ngx_event_quic.c b/src/event/ngx_event_quic.c
+index 71a50a8e..f4a4435e 100644
+--- a/src/event/ngx_event_quic.c
++++ b/src/event/ngx_event_quic.c
+@@ -185,6 +185,44 @@ ngx_quic_create_connection(ngx_quic_t *quic, ngx_connection_t *c)
+     qc->handler = NULL;
+ 
+     qc->conn = conn;
++#if (NGX_DEBUG)
++    {
++
++    char  *qlogdir;
++    ngx_err_t                   err;
++
++    qlogdir = getenv("QLOGDIR");
++    uint8_t  scid_hex[QUICHE_MAX_CONN_ID_LEN * 2];
++
++    if (qlogdir) {
++        ngx_log_debug1(NGX_LOG_DEBUG_EVENT, c->log, 0,
++                        "qlogdir: %s", qlogdir);
++	char *fname;
++        fname = ngx_alloc(200, c->log);
++        if (fname == NULL) {
++            return NGX_OK;
++        }
++
++        ngx_sprintf(fname, "%s/%*.s.qlog%Z", qlogdir, ngx_hex_dump(scid_hex, scid, sizeof(scid)) - scid_hex, scid_hex);
++
++        ngx_fd_t  fd;
++
++        fd = ngx_open_file(fname, NGX_FILE_RDWR, NGX_FILE_CREATE_OR_OPEN,
++                           NGX_FILE_DEFAULT_ACCESS);
++
++        if (fd == NGX_INVALID_FILE) {
++            err = ngx_errno;
++            ngx_log_error(NGX_LOG_ERR, c->log, 0,
++                      "open qlogfile \"%s\" : \"%i\"",
++		      fname, err);
++            return NGX_ERROR;
++        }
++	quiche_conn_set_qlog_fd(conn, fd,
++                              "qlog title", "nginx qlog");
++    }
++
++    }
++#endif
+ 
+     c->quic = qc;
+ 
+@@ -275,6 +313,10 @@ ngx_quic_read_handler(ngx_event_t *rev)
+ 
+     if (quiche_conn_is_in_early_data(c->quic->conn) ||
+             quiche_conn_is_established(c->quic->conn)) {
++        
++        if (quiche_conn_is_in_early_data(c->quic->conn)) {
++            ngx_log_debug0(NGX_LOG_DEBUG_EVENT, c->log, 0, "in early_data");
++	}
+         if (!c->ssl->handshaked) {
+             ngx_quic_handshake_completed(c);
+         }
+diff --git a/src/http/v3/ngx_http_v3_module.c b/src/http/v3/ngx_http_v3_module.c
+index 30955c4c..16cea831 100644
+--- a/src/http/v3/ngx_http_v3_module.c
++++ b/src/http/v3/ngx_http_v3_module.c
+@@ -8,6 +8,7 @@
+ #include <ngx_core.h>
+ #include <ngx_http.h>
+ #include <ngx_http_v3_module.h>
++#include <ngx_log.h>
+ 
+ #include <quiche.h>
+ 
+@@ -68,6 +69,13 @@ static ngx_command_t  ngx_http_v3_commands[] = {
+       offsetof(ngx_http_v3_srv_conf_t, idle_timeout),
+       NULL },
+ 
++    { ngx_string("http3_early_data"),
++      NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_CONF_TAKE1,
++      ngx_conf_set_flag_slot,
++      NGX_HTTP_SRV_CONF_OFFSET,
++      offsetof(ngx_http_v3_srv_conf_t, h3early_data),
++      NULL },
++
+       ngx_null_command
+ };
+ 
+@@ -148,6 +156,7 @@ ngx_http_v3_create_srv_conf(ngx_conf_t *cf)
+     h3scf->max_requests = NGX_CONF_UNSET_UINT;
+     h3scf->max_header_size = NGX_CONF_UNSET_SIZE;
+     h3scf->concurrent_streams = NGX_CONF_UNSET_UINT;
++    h3scf->h3early_data = NGX_CONF_UNSET;
+ 
+     return h3scf;
+ }
+@@ -190,6 +199,9 @@ ngx_http_v3_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child)
+     ngx_conf_merge_uint_value(conf->concurrent_streams,
+                               prev->concurrent_streams, 128);
+ 
++    ngx_conf_merge_value(conf->h3early_data,
++                              prev->h3early_data, 0);
++
+     conf->quic.log = cf->log;
+ 
+ #if (NGX_DEBUG)
+@@ -214,6 +226,15 @@ ngx_http_v3_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child)
+     quiche_config_set_initial_max_streams_bidi(conf->quic.config,
+                                                conf->concurrent_streams);
+ 
++
++    ngx_log_debug0(NGX_LOG_DEBUG_HTTP, cf->log, 0, "early data config value");
++    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, cf->log, 0, "early data config value: %s", conf->h3early_data);
++    if (conf->h3early_data) {
++        ngx_log_debug0(NGX_LOG_DEBUG_HTTP, cf->log, 0, "doing enable quiche early data");
++        quiche_config_enable_early_data(conf->quic.config);
++    }
++    quiche_config_enable_early_data(conf->quic.config);
++
+     /* For HTTP/3 we only need 3 unidirectional streams. */
+     quiche_config_set_initial_max_streams_uni(conf->quic.config, 3);
+ 
+diff --git a/src/http/v3/ngx_http_v3_module.h b/src/http/v3/ngx_http_v3_module.h
+index 72e189de..b3280389 100644
+--- a/src/http/v3/ngx_http_v3_module.h
++++ b/src/http/v3/ngx_http_v3_module.h
+@@ -25,6 +25,8 @@ typedef struct {
+     ngx_uint_t                      max_requests;
+     ngx_uint_t                      max_header_size;
+     ngx_uint_t                      concurrent_streams;
++    ngx_flag_t                      h3early_data;
++
+ } ngx_http_v3_srv_conf_t;
+ 
+ 

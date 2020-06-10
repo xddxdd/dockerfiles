@@ -29,12 +29,15 @@ RUN cd /tmp \
       && cd /tmp/nginx-${NGINX_VERSION} \
 #if defined(ARCH_AMD64)
       && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_quic.patch) \
-      && PATCH_LOCAL(/tmp/nginx-spdy-patch-quic-aware.patch) \
-      && PATCH_LOCAL(/tmp/nginx-1.17.10-quiche-remove_opennssl_make_fix.patch) \
-      && PATCH_LOCAL(/tmp/nginx-quiche-openssl-feature.patch) \
+      && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-ssl_cert_cb_yield.patch) \
+      && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-ssl_sess_cb_yield.patch) \
+      && PATCH_LOCAL(/tmp/patch-nginx/nginx-spdy-patch-quic-aware.patch) \
+      && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-quiche-remove_opennssl_make_fix.patch) \
+      && PATCH_LOCAL(/tmp/patch-nginx/nginx-quiche-openssl-feature.patch) \
+      && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-quiche_enable_0rtt.patch) \
 #else
       && PATCH(https://github.com/kn007/patch/raw/master/nginx.patch) \
-      && PATCH_LOCAL(/tmp/nginx-spdy-patch.patch) \
+      && PATCH_LOCAL(/tmp/patch-nginx/nginx-spdy-patch.patch) \
 #endif
       && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/nginx_strict-sni_1.15.10.patch) \
       && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
@@ -51,6 +54,7 @@ RUN cd /tmp \
       && mv /tmp/openssl-${OPENSSL_VERSION} /tmp/openssl \
       && cd /tmp/openssl \
 #if defined(ARCH_AMD64)
+      && PATCH_LOCAL(/tmp/patch-openssl/openssl-1.1.1e-sess_set_get_cb_yield.patch) \
       && PATCH_LOCAL(/tmp/patch-openssl/0001-Add-support-for-BoringSSL-QUIC-APIs.patch) \
       && PATCH_LOCAL(/tmp/patch-openssl/0002-Fix-resumption-secret.patch) \
       && PATCH_LOCAL(/tmp/patch-openssl/0003-QUIC-Handle-EndOfEarlyData-and-MaxEarlyData.patch) \
@@ -62,7 +66,6 @@ RUN cd /tmp \
       && PATCH_LOCAL(/tmp/patch-openssl/0009-Fix-out-of-bounds-read-when-TLS-msg-is-split-up-into.patch) \
       && PATCH_LOCAL(/tmp/patch-openssl/0001-update-quice-method.patch) \
       && PATCH_LOCAL(/tmp/patch-openssl/fupdatesetread.patch) \
-      && PATCH_LOCAL(/tmp/patch-openssl/openssl-1.1.1e-sess_set_get_cb_yield.patch) \
 #endif
       && cd /tmp \
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
