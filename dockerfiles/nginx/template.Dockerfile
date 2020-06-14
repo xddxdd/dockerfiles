@@ -27,18 +27,41 @@ RUN cd /tmp \
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
       && tar xf nginx-${NGINX_VERSION}.tar.gz \
       && cd /tmp/nginx-${NGINX_VERSION} \
-#if defined(ARCH_AMD64)
-      && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_quic.patch) \
-      && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-ssl_cert_cb_yield.patch) \
-      && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-ssl_sess_cb_yield.patch) \
-      && PATCH_LOCAL(/tmp/patch-nginx/nginx-spdy-patch-quic-aware.patch) \
-      && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-quiche-remove_opennssl_make_fix.patch) \
-      && PATCH_LOCAL(/tmp/patch-nginx/nginx-quiche-openssl-feature.patch) \
-      && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-quiche_enable_0rtt.patch) \
-#else
-      && PATCH(https://github.com/kn007/patch/raw/master/nginx.patch) \
-      && PATCH_LOCAL(/tmp/patch-nginx/nginx-spdy-patch.patch) \
-#endif
+      && echo "Adding OpenResty patches" \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-stream_balancer_export.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-stream_proxy_get_next_upstream_tries.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-stream_proxy_timeout_fields.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-stream_ssl_preread_no_skip.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-resolver_conf_parsing.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-daemon_destroy_pool.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-init_cycle_pool_release.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-balancer_status_code.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-builtin_error_page_footer.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-delayed_posted_events.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-privileged_agent_process.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-single_process_graceful_exit.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-intercept_error_log.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-upstream_pipelining.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-no_error_pages.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-no_Werror.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-log_escape_non_ascii.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-proxy_host_port_vars.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-cache_manager_exit.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-larger_max_error_str.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-pcre_conf_opt.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-always_enable_cc_feature_tests.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-ssl_cert_cb_yield.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-ssl_sess_cb_yield.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-upstream_timeout_fields.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-safe_resolver_ipv6_option.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-socket_cloexec.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-reuseport_close_unused_fds.patch) \
+      && echo "Adding QUIC patches" \
+         && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_quic.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-spdy-patch-quic-aware.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-quiche-remove_opennssl_make_fix.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-quiche-openssl-feature.patch) \
+         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-quiche_enable_0rtt.patch) \
       && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/nginx_strict-sni_1.15.10.patch) \
       && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
       && PATCH(https://github.com/kn007/patch/raw/master/Enable_BoringSSL_OCSP.patch) \
