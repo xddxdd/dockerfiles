@@ -14,7 +14,7 @@
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch LINUX_HEADERS
 #endif
 
-ENV NGINX_VERSION=1.19.0 OPENSSL_VERSION=1.1.1g QUICHE_VERSION=98757ca
+ENV NGINX_VERSION=1.19.1 OPENSSL_VERSION=1.1.1g QUICHE_VERSION=c25a595
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
@@ -36,7 +36,6 @@ RUN cd /tmp \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-daemon_destroy_pool.patch) \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-init_cycle_pool_release.patch) \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-balancer_status_code.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-builtin_error_page_footer.patch) \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-delayed_posted_events.patch) \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-privileged_agent_process.patch) \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-single_process_graceful_exit.patch) \

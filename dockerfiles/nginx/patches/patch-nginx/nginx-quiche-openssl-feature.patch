@@ -21,7 +21,7 @@
  $QUICHE/target/$QUICHE_BUILD_TARGET/libquiche.a: \\
  		$OPENSSL/.openssl/include/openssl/ssl.h \\
  		$NGX_MAKEFILE
--	cd $QUICHE && cargo build $QUICHE_BUILD_FLAGS
-+	cd $QUICHE && export PKG_CONFIG_PATH=$OPENSSL_PATH && export LD_LIBRARY_PATH=$OPENSSL_PATH && cargo build $QUICHE_BUILD_FLAGS
+-	cd $QUICHE && cargo build $QUICHE_BUILD_FLAGS $QUICHE_OPT
++	cd $QUICHE && export PKG_CONFIG_PATH=$OPENSSL_PATH && export LD_LIBRARY_PATH=$OPENSSL_PATH && cargo build $QUICHE_BUILD_FLAGS $QUICHE_OPT
  
  END
