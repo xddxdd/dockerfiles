@@ -14,16 +14,11 @@
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch LINUX_HEADERS
 #endif
 
-ENV NGINX_VERSION=1.19.1 OPENSSL_VERSION=1.1.1g QUICHE_VERSION=c25a595
+ENV NGINX_VERSION=1.19.1 OPENSSL_VERSION=1.1.1g
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
     && cd /tmp \
-    && git clone https://github.com/cloudflare/quiche \
-      && cd /tmp/quiche \
-      && git checkout ${QUICHE_VERSION} \
-      && PATCH_LOCAL(/tmp/quiche-tls-add-feature-to-build-against-OpenSSL.patch) \
-      && cd /tmp \
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
       && tar xf nginx-${NGINX_VERSION}.tar.gz \
       && cd /tmp/nginx-${NGINX_VERSION} \
@@ -55,15 +50,10 @@ RUN cd /tmp \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-safe_resolver_ipv6_option.patch) \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-socket_cloexec.patch) \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-reuseport_close_unused_fds.patch) \
-      && echo "Adding QUIC patches" \
-         && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_quic.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-spdy-patch-quic-aware.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-quiche-remove_opennssl_make_fix.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-quiche-openssl-feature.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-quiche_enable_0rtt.patch) \
+      && echo "Adding other patches" \
+      && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_spdy.patch) \
       && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/nginx_strict-sni_1.15.10.patch) \
       && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
-      && PATCH(https://github.com/kn007/patch/raw/master/Enable_BoringSSL_OCSP.patch) \
       && cd /tmp \
     && git clone https://github.com/eustas/ngx_brotli.git \
       && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
@@ -75,20 +65,7 @@ RUN cd /tmp \
       && tar xf openssl-${OPENSSL_VERSION}.tar.gz \
       && mv /tmp/openssl-${OPENSSL_VERSION} /tmp/openssl \
       && cd /tmp/openssl \
-#if defined(ARCH_AMD64)
       && PATCH_LOCAL(/tmp/patch-openssl/openssl-1.1.1e-sess_set_get_cb_yield.patch) \
-      && PATCH_LOCAL(/tmp/patch-openssl/0001-Add-support-for-BoringSSL-QUIC-APIs.patch) \
-      && PATCH_LOCAL(/tmp/patch-openssl/0002-Fix-resumption-secret.patch) \
-      && PATCH_LOCAL(/tmp/patch-openssl/0003-QUIC-Handle-EndOfEarlyData-and-MaxEarlyData.patch) \
-      && PATCH_LOCAL(/tmp/patch-openssl/0004-QUIC-Increase-HKDF_MAXBUF-to-2048.patch) \
-      && PATCH_LOCAL(/tmp/patch-openssl/0005-Fall-through-for-0RTT.patch) \
-      && PATCH_LOCAL(/tmp/patch-openssl/0006-Some-cleanup-for-the-main-QUIC-changes.patch) \
-      && PATCH_LOCAL(/tmp/patch-openssl/0007-Prevent-KeyUpdate-for-QUIC.patch) \
-      && PATCH_LOCAL(/tmp/patch-openssl/0008-Test-KeyUpdate-rejection.patch) \
-      && PATCH_LOCAL(/tmp/patch-openssl/0009-Fix-out-of-bounds-read-when-TLS-msg-is-split-up-into.patch) \
-      && PATCH_LOCAL(/tmp/patch-openssl/0001-update-quice-method.patch) \
-      && PATCH_LOCAL(/tmp/patch-openssl/fupdatesetread.patch) \
-#endif
       && cd /tmp \
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
     && git clone https://github.com/tokers/zstd-nginx-module.git \
@@ -123,17 +100,12 @@ RUN cd /tmp \
        --add-module=/tmp/headers-more-nginx-module \
        --add-module=/tmp/zstd-nginx-module \
        --add-module=/tmp/nginx-module-vts \
-#if defined(ARCH_AMD64)
-       --with-http_v3_module \
-       --with-quiche=/tmp/quiche \
-#endif
        --with-openssl=/tmp/openssl \
 #if defined(ARCH_AMD64) || defined(ARCH_ARM64V8)
        --with-openssl-opt="zlib no-tests enable-ec_nistp_64_gcc_128" \
 #else
        --with-openssl-opt="zlib no-tests" \
 #endif
-       --with-cc-opt="-O3 -flto -fPIC -fPIE -fstack-protector-strong -Wformat -Werror=format-security -Wno-deprecated-declarations -Wno-strict-aliasing" \
 #ifdef ARCH_I386
     && setarch i386 make -j4 \
     && setarch i386 make install \
