@@ -2,7 +2,7 @@
 cd /
 # Initialize git repository
 if [ ! -e /registry/.git ]; then
-    git clone http://git.dn42.us/dn42/registry.git
+    git clone git@git.dn42.dev:dn42/registry.git
 fi
 # Start whois42d in background
 /whois42d -registry /registry &
