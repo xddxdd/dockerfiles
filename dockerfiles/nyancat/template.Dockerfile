@@ -15,6 +15,7 @@ RUN PKG_INSTALL(APP_BUILD_TOOLS) \
       && autoreconf -vfi && ./configure && make -j4 \
       && cp onenetd /usr/bin \
       && cd .. && rm -rf onenetd \
-    && PKG_UNINSTALL(APP_BUILD_TOOLS)
+    && PKG_UNINSTALL(APP_BUILD_TOOLS) \
+    && FINAL_CLEANUP()
 
 ENTRYPOINT ["onenetd", "-v", "0", "23", "nyancat", "--telnet"]

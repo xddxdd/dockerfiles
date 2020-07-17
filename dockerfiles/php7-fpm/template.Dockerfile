@@ -49,6 +49,7 @@ RUN mkdir /usr/log && mkdir /run/php \
        && make -j4 && make install \
        && cd /tmp && rm -rf MaxMind-DB-Reader-php \
        && sh -c "echo extension=maxminddb.so > /etc/php/7.4/fpm/conf.d/maxminddb.ini" \
-    && PKG_UNINSTALL(APP_BUILD_TOOLS)
+    && PKG_UNINSTALL(APP_BUILD_TOOLS) \
+    && FINAL_CLEANUP()
 EXPOSE 9000
 ENTRYPOINT ["/usr/sbin/php-fpm"]

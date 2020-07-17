@@ -4,6 +4,7 @@
 
 ADD healthcheck.sh /
 RUN PKG_INSTALL(dnsutils pdns-recursor pdns-tools) \
+    && FINAL_CLEANUP() \
     && mkdir /var/run/pdns-recursor
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD [ "sh", "/healthcheck.sh" ]
 ENTRYPOINT ["/usr/sbin/pdns_recursor"]

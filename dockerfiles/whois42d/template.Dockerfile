@@ -10,5 +10,6 @@ RUN PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
     && go get github.com/Mic92/whois42d \
     && cp /root/go/bin/whois42d /whois42d \
     && rm -rf /root/go \
-    && PKG_UNINSTALL(APP_BUILD_TOOLS)
+    && PKG_UNINSTALL(APP_BUILD_TOOLS) \
+    && FINAL_CLEANUP()
 ENTRYPOINT ["sh", "/start.sh"]
