@@ -1,26 +1,28 @@
+#include "step_counter.Dockerfile"
+
 #if defined(ARCH_AMD64)
-FROM amd64/debian:sid
+FROM amd64/debian:sid AS STEP
 #define LINUX_HEADERS linux-headers-amd64
 #elif defined(ARCH_I386)
-FROM i386/debian:sid
+FROM i386/debian:sid AS STEP
 #define LINUX_HEADERS linux-headers-686
 #elif defined(ARCH_ARM32V7)
-FROM arm32v7/debian:sid
+FROM arm32v7/debian:sid AS STEP
 #define LINUX_HEADERS linux-headers-armmp
 #elif defined(ARCH_ARM64V8)
-FROM arm64v8/debian:sid
+FROM arm64v8/debian:sid AS STEP
 #define LINUX_HEADERS linux-headers-arm64
 #elif defined(ARCH_PPC64LE)
-FROM ppc64le/debian:sid
+FROM ppc64le/debian:sid AS STEP
 #define LINUX_HEADERS linux-headers-powerpc64le
 #elif defined(ARCH_S390X)
-FROM s390x/debian:sid
+FROM s390x/debian:sid AS STEP
 #define LINUX_HEADERS linux-headers-s390x
 #elif defined(ARCH_RISCV64)
-FROM xddxdd/debian-riscv64:latest
+FROM xddxdd/debian-riscv64:latest AS STEP
 #define LINUX_HEADERS linux-headers-riscv64
 #elif defined(ARCH_X32)
-FROM xddxdd/debian-x32:latest
+FROM xddxdd/debian-x32:latest AS STEP
 #define LINUX_HEADERS linux-headers-\*-common
 #else
 #error "Architecture not set"

@@ -1,15 +1,17 @@
+#include "step_counter.Dockerfile"
+
 #if defined(ARCH_AMD64)
-FROM amd64/alpine:edge
+FROM amd64/alpine:edge AS STEP
 #elif defined(ARCH_I386)
-FROM i386/alpine:edge
+FROM i386/alpine:edge AS STEP
 #elif defined(ARCH_ARM32V7)
-FROM arm32v7/alpine:edge
+FROM arm32v7/alpine:edge AS STEP
 #elif defined(ARCH_ARM64V8)
-FROM arm64v8/alpine:edge
+FROM arm64v8/alpine:edge AS STEP
 #elif defined(ARCH_PPC64LE)
-FROM ppc64le/alpine:edge
+FROM ppc64le/alpine:edge AS STEP
 #elif defined(ARCH_S390X)
-FROM s390x/alpine:edge
+FROM s390x/alpine:edge AS STEP
 #else
 #error "Architecture not set"
 #endif
