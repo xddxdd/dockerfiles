@@ -8,13 +8,9 @@
 #define APP_DEPS libpcre3 zlib1g libatomic-ops-dev libgd3 util-linux libzstd1
 #endif
 
-#if defined(ARCH_AMD64)
-#define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch LINUX_HEADERS cmake rustc cargo golang-go
-#else
-#define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch LINUX_HEADERS
-#endif
+#define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev libssl-dev unzip patch python3-pytest python3-pytest-xdist xsltproc doxygen graphviz cmake LINUX_HEADERS
 
-ENV NGINX_VERSION=1.19.1 OPENSSL_VERSION=1.1.1g
+ENV NGINX_VERSION=1.19.2
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
@@ -23,37 +19,20 @@ RUN cd /tmp \
       && tar xf nginx-${NGINX_VERSION}.tar.gz \
       && cd /tmp/nginx-${NGINX_VERSION} \
       && echo "Adding OpenResty patches" \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-stream_balancer_export.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-stream_proxy_get_next_upstream_tries.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-stream_proxy_timeout_fields.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-stream_ssl_preread_no_skip.patch) \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-resolver_conf_parsing.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-daemon_destroy_pool.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-init_cycle_pool_release.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-balancer_status_code.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-delayed_posted_events.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-privileged_agent_process.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-single_process_graceful_exit.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-intercept_error_log.patch) \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-upstream_pipelining.patch) \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-no_error_pages.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-no_Werror.patch) \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-log_escape_non_ascii.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-proxy_host_port_vars.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-cache_manager_exit.patch) \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-larger_max_error_str.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-pcre_conf_opt.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-always_enable_cc_feature_tests.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-ssl_cert_cb_yield.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-ssl_sess_cb_yield.patch) \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-upstream_timeout_fields.patch) \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-safe_resolver_ipv6_option.patch) \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-socket_cloexec.patch) \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-reuseport_close_unused_fds.patch) \
       && echo "Adding other patches" \
-      && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_spdy.patch) \
+      && PATCH(https://github.com/kn007/patch/raw/master/nginx.patch) \
       && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/nginx_strict-sni_1.15.10.patch) \
       && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
+      && PATCH_LOCAL(/tmp/patch-nginx/spdy.patch) \
       && cd /tmp \
     && git clone https://github.com/eustas/ngx_brotli.git \
       && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
@@ -61,12 +40,14 @@ RUN cd /tmp \
       && git clone https://github.com/cloudflare/zlib.git \
       && cd /tmp/zlib && make -f Makefile.in distclean && cd /tmp \
 #endif
-    && wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
-      && tar xf openssl-${OPENSSL_VERSION}.tar.gz \
-      && mv /tmp/openssl-${OPENSSL_VERSION} /tmp/openssl \
-      && cd /tmp/openssl \
-      && PATCH_LOCAL(/tmp/patch-openssl/openssl-1.1.1e-sess_set_get_cb_yield.patch) \
+    && git clone -b OQS-OpenSSL_1_1_1-stable https://github.com/open-quantum-safe/openssl.git \
+      && cd openssl \
+      && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1e-dev_ciphers.patch) \
       && cd /tmp \
+    && git clone -b master https://github.com/open-quantum-safe/liboqs.git \
+      && mkdir /tmp/liboqs/build && cd /tmp/liboqs/build \
+      && cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/tmp/openssl/oqs .. \
+      && make -j4 && make install && cd /tmp \
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
     && git clone https://github.com/tokers/zstd-nginx-module.git \
     && git clone https://github.com/vozlt/nginx-module-vts.git \
@@ -106,6 +87,9 @@ RUN cd /tmp \
 #else
        --with-openssl-opt="zlib no-tests" \
 #endif
+       --with-cc-opt="-I/tmp/openssl/oqs/include" \
+       --with-ld-opt="-L/tmp/openssl/oqs/lib" \
+    && sed -i 's/libcrypto.a/libcrypto.a -loqs/g' objs/Makefile \
 #ifdef ARCH_I386
     && setarch i386 make -j4 \
     && setarch i386 make install \
