@@ -8,12 +8,13 @@
 #define APP_DEPS libpcre3 zlib1g libatomic-ops-dev libgd3 util-linux libzstd1
 #endif
 
-#define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev libssl-dev unzip patch python3-pytest python3-pytest-xdist xsltproc doxygen graphviz cmake LINUX_HEADERS
+#define APP_BUILD_TOOLS_EARLY libssl-dev openssl
+#define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake LINUX_HEADERS
 
 ENV NGINX_VERSION=1.19.2
 COPY patches /tmp/
 RUN cd /tmp \
-    && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
+    && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS APP_BUILD_TOOLS_EARLY) \
     && cd /tmp \
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
       && tar xf nginx-${NGINX_VERSION}.tar.gz \
@@ -43,14 +44,25 @@ RUN cd /tmp \
     && git clone -b OQS-OpenSSL_1_1_1-stable https://github.com/open-quantum-safe/openssl.git \
       && cd openssl \
       && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1e-dev_ciphers.patch) \
+      && sed -i "s/enable: false/enable: true/g" oqs-template/generate.yml \
       && cd /tmp \
     && git clone -b master https://github.com/open-quantum-safe/liboqs.git \
       && mkdir /tmp/liboqs/build && cd /tmp/liboqs/build \
-      && cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/tmp/openssl/oqs .. \
+      && cmake -DOQS_BUILD_ONLY_LIB=1 -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/tmp/openssl/oqs .. \
       && make -j4 && make install && cd /tmp \
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
     && git clone https://github.com/tokers/zstd-nginx-module.git \
     && git clone https://github.com/vozlt/nginx-module-vts.git \
+    && echo "Replace system OpenSSL with our own" \
+    && PKG_UNINSTALL(APP_BUILD_TOOLS_EARLY) \
+    && cd /tmp/openssl \
+      && ./config --prefix=/usr --openssldir=/usr \
+#if defined(ARCH_AMD64) || defined(ARCH_ARM64V8)
+         zlib no-tests enable-ec_nistp_64_gcc_128 \
+#else
+         zlib no-tests \
+#endif
+      && make -j4 && make install && cd /tmp \
     && cd /tmp/nginx-${NGINX_VERSION} \
 #ifdef ARCH_I386
     && setarch i386 ./configure \
