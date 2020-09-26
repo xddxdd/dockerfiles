@@ -51,10 +51,8 @@ RUN cd /tmp \
     && PKG_UNINSTALL(APP_BUILD_TOOLS_EARLY) \
     && cd /tmp/openssl \
       && ./config --prefix=/usr --openssldir=/usr \
-#if defined(ARCH_AMD64) || defined(ARCH_ARM64V8)
+#if defined(ARCH_AMD64) || defined(ARCH_ARM64V8) || defined(ARCH_X32)
          zlib no-tests enable-ec_nistp_64_gcc_128 \
-#elif defined(ARCH_X32)
-         zlib no-tests enable-ec_nistp_64_gcc_128 linux-x32 \
 #else
          zlib no-tests \
 #endif
@@ -87,10 +85,8 @@ RUN cd /tmp \
        --add-module=/tmp/zstd-nginx-module \
        --add-module=/tmp/nginx-module-vts \
        --with-openssl=/tmp/openssl \
-#if defined(ARCH_AMD64) || defined(ARCH_ARM64V8)
+#if defined(ARCH_AMD64) || defined(ARCH_ARM64V8) || defined(ARCH_X32)
        --with-openssl-opt="zlib no-tests enable-ec_nistp_64_gcc_128" \
-#elif defined(ARCH_X32)
-       --with-openssl-opt="zlib no-tests enable-ec_nistp_64_gcc_128 linux-x32" \
 #else
        --with-openssl-opt="zlib no-tests" \
 #endif
