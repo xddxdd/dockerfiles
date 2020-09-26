@@ -2,12 +2,7 @@
 #include "image/debian_sid.Dockerfile"
 #include "env.Dockerfile"
 
-#if defined(ARCH_RISCV64)
 #define APP_DEPS libpcre3 zlib1g libgd3 util-linux libzstd1
-#else
-#define APP_DEPS libpcre3 zlib1g libatomic-ops-dev libgd3 util-linux libzstd1
-#endif
-
 #define APP_BUILD_TOOLS_EARLY libssl-dev openssl
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake LINUX_HEADERS
 
@@ -44,7 +39,6 @@ RUN cd /tmp \
     && git clone -b OQS-OpenSSL_1_1_1-stable https://github.com/open-quantum-safe/openssl.git \
       && cd openssl \
       && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1e-dev_ciphers.patch) \
-      && sed -i "s/enable: false/enable: true/g" oqs-template/generate.yml \
       && cd /tmp \
     && git clone -b master https://github.com/open-quantum-safe/liboqs.git \
       && mkdir /tmp/liboqs/build && cd /tmp/liboqs/build \
@@ -59,6 +53,8 @@ RUN cd /tmp \
       && ./config --prefix=/usr --openssldir=/usr \
 #if defined(ARCH_AMD64) || defined(ARCH_ARM64V8)
          zlib no-tests enable-ec_nistp_64_gcc_128 \
+#elif defined(ARCH_X32)
+         zlib no-tests enable-ec_nistp_64_gcc_128 linux-x32 \
 #else
          zlib no-tests \
 #endif
@@ -83,9 +79,6 @@ RUN cd /tmp \
        --with-http_sub_module \
        --with-http_v2_module \
        --with-http_v2_hpack_enc \
-#if !defined(ARCH_RISCV64)
-       --with-libatomic \
-#endif
 #if defined(ARCH_AMD64) || defined(ARCH_ARM64V8)
        --with-zlib=/tmp/zlib \
 #endif
@@ -96,6 +89,8 @@ RUN cd /tmp \
        --with-openssl=/tmp/openssl \
 #if defined(ARCH_AMD64) || defined(ARCH_ARM64V8)
        --with-openssl-opt="zlib no-tests enable-ec_nistp_64_gcc_128" \
+#elif defined(ARCH_X32)
+       --with-openssl-opt="zlib no-tests enable-ec_nistp_64_gcc_128 linux-x32" \
 #else
        --with-openssl-opt="zlib no-tests" \
 #endif
