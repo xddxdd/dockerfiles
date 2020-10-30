@@ -6,7 +6,7 @@
 #define APP_BUILD_TOOLS_EARLY libssl-dev openssl
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake LINUX_HEADERS
 
-ENV NGINX_VERSION=1.19.3
+ENV NGINX_VERSION=1.19.4
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS APP_BUILD_TOOLS_EARLY) \
@@ -26,7 +26,6 @@ RUN cd /tmp \
          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-reuseport_close_unused_fds.patch) \
       && echo "Adding other patches" \
       && PATCH(https://github.com/kn007/patch/raw/master/nginx.patch) \
-      && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/nginx_strict-sni_1.15.10.patch) \
       && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
       && PATCH_LOCAL(/tmp/patch-nginx/spdy.patch) \
       && cd /tmp \
