@@ -1,21 +1,21 @@
 #include "common.Dockerfile"
-#include "image/debian_buster.Dockerfile"
-#include "env.Dockerfile"
+#include "image/debian_sid.Dockerfile"
 
-#define APP_BUILD_TOOLS build-essential git autoconf automake
+#define APP_BUILD_TOOLS build-essential git musl-dev musl-tools
 
 RUN PKG_INSTALL(APP_BUILD_TOOLS) \
     && cd /tmp \
     && git clone https://github.com/klange/nyancat.git \
-      && cd nyancat && make -j4 \
-      && cp src/nyancat /usr/bin \
-      && cd .. && rm -rf nyancat \
+      && cd nyancat \
+      && CC=musl-gcc LDFLAGS="-static" make \
+      && cp src/nyancat / \
+    && cd /tmp \
     && git clone http://offog.org/git/onenetd.git \
       && cd /tmp/onenetd \
-      && autoreconf -vfi && ./configure && make -j4 \
-      && cp onenetd /usr/bin \
-      && cd .. && rm -rf onenetd \
-    && PKG_UNINSTALL(APP_BUILD_TOOLS) \
-    && FINAL_CLEANUP()
+      && touch config.h \
+      && musl-gcc -static -O3 -DVERSION="" -o /onenetd onenetd.c
 
-ENTRYPOINT ["onenetd", "-v", "0", "23", "nyancat", "--telnet"]
+#include "image/scratch.Dockerfile"
+COPY --from=step_0 /nyancat /onenetd /
+STOPSIGNAL SIGKILL
+ENTRYPOINT ["/onenetd", "-v", "0", "23", "/nyancat", "--telnet"]
