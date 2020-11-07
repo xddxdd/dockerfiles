@@ -1,15 +1,11 @@
 #include "common.Dockerfile"
-#include "image/debian_buster.Dockerfile"
-#include "env.Dockerfile"
+#include "image/golang.Dockerfile"
 
-#define APP_DEPS git procps
-#define APP_BUILD_TOOLS golang
+RUN cd / \
+    && go get -d github.com/Mic92/whois42d \
+    && CGO_ENABLED=0 go build github.com/Mic92/whois42d
 
-ADD start.sh /
-RUN PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
-    && go get github.com/Mic92/whois42d \
-    && cp /root/go/bin/whois42d /whois42d \
-    && rm -rf /root/go \
-    && PKG_UNINSTALL(APP_BUILD_TOOLS) \
-    && FINAL_CLEANUP()
-ENTRYPOINT ["sh", "/start.sh"]
+#include "image/scratch.Dockerfile"
+COPY --from=step_0 /whois42d /
+
+ENTRYPOINT ["/whois42d", "-registry", "/registry"]

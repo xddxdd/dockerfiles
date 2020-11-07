@@ -8,7 +8,7 @@
 ENV BIRD_VERSION=2.0.7
 RUN PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
     && cd /tmp \
-    && UNTARGZ(ftp://bird.network.cz/pub/bird/bird-${BIRD_VERSION}.tar.gz) \
+    && UNTARGZ(https://bird.network.cz/download/bird-${BIRD_VERSION}.tar.gz) \
        && cd /tmp/bird-${BIRD_VERSION} \
        && ./configure --prefix=/usr \
           --sysconfdir=/etc \
