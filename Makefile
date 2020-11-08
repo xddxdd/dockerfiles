@@ -79,7 +79,7 @@ $(foreach image,${IMAGES},$(eval $(call create-image-target,${image})))
 
 # Target to enable multiarch support
 _crossbuild:
-	@docker run --rm --privileged multiarch/qemu-user-static:register --reset >/dev/null
+	@docker run --rm --privileged multiarch/qemu-user-static --reset -p yes >/dev/null
 
 dockerfiles: $(foreach image,${IMAGES},$(foreach arch,${ARCHITECTURES},${DOCKERFILES_DIR}/$(image)/Dockerfile.$(arch)))
 
