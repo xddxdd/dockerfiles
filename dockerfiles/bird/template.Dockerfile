@@ -15,7 +15,7 @@ ENV TARGET_ARCH=aarch64
 #elif defined(ARCH_PPC64LE)
 ENV TARGET_ARCH=ppc64le
 #elif defined(ARCH_S390X)
-ENV TARGET_ARCH=s390x
+ENV TARGET_ARCH=s390
 #elif defined(ARCH_RISCV64)
 #error "RISC-V not supported"
 #elif defined(ARCH_X32)
