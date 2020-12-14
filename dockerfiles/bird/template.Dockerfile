@@ -2,7 +2,7 @@
 #include "image/debian_sid.Dockerfile"
 #include "env.Dockerfile"
 
-#define APP_BUILD_TOOLS build-essential gcc-9 git musl-dev musl-tools wget bison flex
+#define APP_BUILD_TOOLS build-essential gcc-9 git musl-dev musl-tools wget bison flex automake autoconf
 
 #if defined(ARCH_AMD64)
 ENV TARGET_ARCH=x86_64
@@ -24,7 +24,7 @@ ENV TARGET_ARCH=x32
 #error "Architecture not set"
 #endif
 
-ENV BIRD_VERSION=2.0.7 NCURSES_VERSION=6.2 READLINE_VERSION=8.0
+ENV NCURSES_VERSION=6.2 READLINE_VERSION=8.0
 RUN PKG_INSTALL(APP_BUILD_TOOLS) \
     && cd /tmp \
     && export REALGCC=gcc-9 \
@@ -39,9 +39,9 @@ RUN PKG_INSTALL(APP_BUILD_TOOLS) \
        && cd /tmp/readline \
        && ./configure CC="musl-gcc" && make -j4 \
        && cd /tmp \
-    && UNTARGZ(https://bird.network.cz/download/bird-${BIRD_VERSION}.tar.gz) \
-       && mv /tmp/bird-${BIRD_VERSION} /tmp/bird \
+    && git -c http.sslVerify=false clone https://gitlab.nic.cz/labs/bird.git \
        && cd /tmp/bird \
+       && autoreconf \
        && ./configure \
           CC="musl-gcc" \
           CFLAGS="-I/tmp/ncurses/include -I/tmp -I/tmp/kernel-headers/${TARGET_ARCH}/include" \
