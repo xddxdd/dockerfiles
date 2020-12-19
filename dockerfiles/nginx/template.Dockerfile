@@ -6,7 +6,7 @@
 #define APP_BUILD_TOOLS_EARLY libssl-dev openssl
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake LINUX_HEADERS
 
-ENV NGINX_VERSION=1.19.4
+ENV NGINX_VERSION=1.19.6
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS APP_BUILD_TOOLS_EARLY) \
@@ -77,6 +77,10 @@ RUN cd /tmp \
        --with-http_sub_module \
        --with-http_v2_module \
        --with-http_v2_hpack_enc \
+       --with-stream \
+       --with-stream_realip_module \
+       --with-stream_ssl_module \
+       --with-stream_ssl_preread_module \
 #if defined(ARCH_AMD64) || defined(ARCH_ARM64V8)
        --with-zlib=/tmp/zlib \
 #endif
