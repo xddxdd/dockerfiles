@@ -38,7 +38,7 @@ RUN cd /tmp \
     && git clone -b OQS-OpenSSL_1_1_1-stable https://github.com/open-quantum-safe/openssl.git \
       && cd openssl \
       && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1e-dev_ciphers.patch) \
-      && PATCH_LOCAL(/tmp/patch-openssl/openssl-oqs-1.1.1h-chacha_draft.patch) \
+      && PATCH_LOCAL(/tmp/patch-openssl/openssl-oqs-1.1.1i-chacha_draft.patch) \
       && cd /tmp \
     && git clone -b master https://github.com/open-quantum-safe/liboqs.git \
       && mkdir /tmp/liboqs/build && cd /tmp/liboqs/build \
