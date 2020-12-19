@@ -40,11 +40,15 @@ RUN cd /tmp \
       && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1e-dev_ciphers.patch) \
       && PATCH_LOCAL(/tmp/patch-openssl/openssl-oqs-1.1.1i-chacha_draft.patch) \
       && cd /tmp \
-    && git clone -b master https://github.com/open-quantum-safe/liboqs.git \
+    && git clone -b main https://github.com/open-quantum-safe/liboqs.git \
       && mkdir /tmp/liboqs/build && cd /tmp/liboqs/build \
       && cmake -DOQS_BUILD_ONLY_LIB=1 -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/tmp/openssl/oqs .. \
       && make -j4 && make install && cd /tmp \
+    && git clone https://github.com/openresty/array-var-nginx-module.git \
+    && git clone https://github.com/openresty/echo-nginx-module.git \
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
+    && git clone https://github.com/openresty/set-misc-nginx-module.git \
+    && git clone https://github.com/openresty/stream-echo-nginx-module.git \
     && git clone https://github.com/tokers/zstd-nginx-module.git \
     && git clone https://github.com/vozlt/nginx-module-vts.git \
     && echo "Replace system OpenSSL with our own" \
@@ -85,7 +89,11 @@ RUN cd /tmp \
        --with-zlib=/tmp/zlib \
 #endif
        --add-module=/tmp/ngx_brotli \
+       --add-module=/tmp/array-var-nginx-module \
+       --add-module=/tmp/echo-nginx-module \
        --add-module=/tmp/headers-more-nginx-module \
+       --add-module=/tmp/set-misc-nginx-module \
+       --add-module=/tmp/stream-echo-nginx-module \
        --add-module=/tmp/zstd-nginx-module \
        --add-module=/tmp/nginx-module-vts \
        --with-openssl=/tmp/openssl \
