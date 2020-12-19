@@ -44,6 +44,7 @@ RUN cd /tmp \
       && mkdir /tmp/liboqs/build && cd /tmp/liboqs/build \
       && cmake -DOQS_BUILD_ONLY_LIB=1 -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/tmp/openssl/oqs .. \
       && make -j4 && make install && cd /tmp \
+    && git clone https://github.com/vision5/ngx_devel_kit.git \
     && git clone https://github.com/openresty/array-var-nginx-module.git \
     && git clone https://github.com/openresty/echo-nginx-module.git \
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
@@ -89,6 +90,7 @@ RUN cd /tmp \
        --with-zlib=/tmp/zlib \
 #endif
        --add-module=/tmp/ngx_brotli \
+       --add-module=/tmp/ngx_devel_kit \
        --add-module=/tmp/array-var-nginx-module \
        --add-module=/tmp/echo-nginx-module \
        --add-module=/tmp/headers-more-nginx-module \
