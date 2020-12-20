@@ -50,6 +50,9 @@ RUN cd /tmp \
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
     && git clone https://github.com/openresty/set-misc-nginx-module.git \
     && git clone https://github.com/openresty/stream-echo-nginx-module.git \
+      && cd /tmp/stream-echo-nginx-module \
+      && PATCH_LOCAL(/tmp/stream-echo-nginx-module.patch) \
+      && cd /tmp \
     && git clone https://github.com/tokers/zstd-nginx-module.git \
     && git clone https://github.com/vozlt/nginx-module-vts.git \
     && echo "Replace system OpenSSL with our own" \
