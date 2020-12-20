@@ -44,17 +44,14 @@ RUN cd /tmp \
       && mkdir /tmp/liboqs/build && cd /tmp/liboqs/build \
       && cmake -DOQS_BUILD_ONLY_LIB=1 -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/tmp/openssl/oqs .. \
       && make -j4 && make install && cd /tmp \
-    && git clone -b v2.1-agentzh https://github.com/openresty/luajit2.git \
-      && cd /tmp/luajit2 \
-      && make -j4 && make install \
-      && cd /tmp \
     && git clone https://github.com/vision5/ngx_devel_kit.git \
+    && git clone https://github.com/openresty/array-var-nginx-module.git \
+    && git clone https://github.com/openresty/echo-nginx-module.git \
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
     && git clone https://github.com/openresty/set-misc-nginx-module.git \
+    && git clone https://github.com/openresty/stream-echo-nginx-module.git \
     && git clone https://github.com/tokers/zstd-nginx-module.git \
     && git clone https://github.com/vozlt/nginx-module-vts.git \
-    && git clone https://github.com/openresty/lua-nginx-module.git \
-    && git clone https://github.com/openresty/stream-lua-nginx-module.git \
     && echo "Replace system OpenSSL with our own" \
     && PKG_UNINSTALL(APP_BUILD_TOOLS_EARLY) \
     && cd /tmp/openssl \
@@ -65,8 +62,6 @@ RUN cd /tmp \
          zlib no-tests \
 #endif
       && make -j4 && make install && cd /tmp \
-    && export LUAJIT_LIB=/usr/local/lib \
-    && export LUAJIT_INC=/usr/local/include/luajit-2.1 \
     && cd /tmp/nginx-${NGINX_VERSION} \
 #ifdef ARCH_I386
     && setarch i386 ./configure \
@@ -96,12 +91,13 @@ RUN cd /tmp \
 #endif
        --add-module=/tmp/ngx_brotli \
        --add-module=/tmp/ngx_devel_kit \
+       --add-module=/tmp/array-var-nginx-module \
+       --add-module=/tmp/echo-nginx-module \
        --add-module=/tmp/headers-more-nginx-module \
        --add-module=/tmp/set-misc-nginx-module \
+       --add-module=/tmp/stream-echo-nginx-module \
        --add-module=/tmp/zstd-nginx-module \
        --add-module=/tmp/nginx-module-vts \
-       --add-module=/tmp/lua-nginx-module \
-       --add-module=/tmp/stream-lua-nginx-module \
        --with-openssl=/tmp/openssl \
 #if defined(ARCH_AMD64) || defined(ARCH_ARM64V8) || defined(ARCH_X32)
        --with-openssl-opt="zlib no-tests enable-ec_nistp_64_gcc_128" \
@@ -109,7 +105,7 @@ RUN cd /tmp \
        --with-openssl-opt="zlib no-tests" \
 #endif
        --with-cc-opt="-I/tmp/openssl/oqs/include" \
-       --with-ld-opt="-L/tmp/openssl/oqs/lib -Wl,-rpath,/path/to/luajit/lib" \
+       --with-ld-opt="-L/tmp/openssl/oqs/lib" \
     && sed -i 's/libcrypto.a/libcrypto.a -loqs/g' objs/Makefile \
 #ifdef ARCH_I386
     && setarch i386 make -j4 \
