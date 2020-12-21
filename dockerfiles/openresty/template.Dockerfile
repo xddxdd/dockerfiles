@@ -6,15 +6,19 @@
 #define APP_BUILD_TOOLS_EARLY libssl-dev openssl
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake LINUX_HEADERS
 
-ENV OPENRESTY_VERSION=1.19.3.1 NGINX_VERSION=1.19.3
+ENV OPENRESTY_VERSION=1.19.3.1 OPENRESTY_NGINX_VERSION=1.19.3 NGINX_VERSION=1.19.6
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS APP_BUILD_TOOLS_EARLY) \
     && cd /tmp \
+    && git clone https://github.com/nginx/nginx.git \
+      && cd /tmp/nginx \
+      && git diff release-${OPENRESTY_NGINX_VERSION} release-${NGINX_VERSION} > /tmp/nginx-upgrade.patch \
+      && cd /tmp \
     && wget -q https://openresty.org/download/openresty-${OPENRESTY_VERSION}.tar.gz \
       && tar xf openresty-${OPENRESTY_VERSION}.tar.gz \
-      && cd /tmp/openresty-${OPENRESTY_VERSION}/bundle/nginx-${NGINX_VERSION} \ 
-      && echo "Adding other patches" \
+      && cd /tmp/openresty-${OPENRESTY_VERSION}/bundle/nginx-${OPENRESTY_NGINX_VERSION} \ 
+      && (PATCH_LOCAL(/tmp/nginx-upgrade.patch) || true) \
       && PATCH(https://github.com/kn007/patch/raw/master/nginx.patch) \
       && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
       && PATCH_LOCAL(/tmp/patch-nginx/spdy.patch) \
@@ -89,7 +93,7 @@ RUN cd /tmp \
 #endif
        --with-cc-opt="-I/tmp/openssl/oqs/include" \
        --with-ld-opt="-L/tmp/openssl/oqs/lib" \
-    && sed -i 's/libcrypto.a/libcrypto.a -loqs/g' build/nginx-${NGINX_VERSION}/objs/Makefile \
+    && sed -i 's/libcrypto.a/libcrypto.a -loqs/g' build/nginx-${OPENRESTY_NGINX_VERSION}/objs/Makefile \
 #ifdef ARCH_I386
     && setarch i386 make -j4 \
     && setarch i386 make install \

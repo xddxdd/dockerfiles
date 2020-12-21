@@ -12,59 +12,59 @@ RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS APP_BUILD_TOOLS_EARLY) \
     && cd /tmp \
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
-      && tar xf nginx-${NGINX_VERSION}.tar.gz \
-      && cd /tmp/nginx-${NGINX_VERSION} \
-      && echo "Adding OpenResty patches" \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-resolver_conf_parsing.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-upstream_pipelining.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-no_error_pages.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-log_escape_non_ascii.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-larger_max_error_str.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-upstream_timeout_fields.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-safe_resolver_ipv6_option.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-socket_cloexec.patch) \
-         && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-reuseport_close_unused_fds.patch) \
-      && echo "Adding other patches" \
-      && PATCH(https://github.com/kn007/patch/raw/master/nginx.patch) \
-      && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
-      && PATCH_LOCAL(/tmp/patch-nginx/spdy.patch) \
-      && cd /tmp \
+       && tar xf nginx-${NGINX_VERSION}.tar.gz \
+       && cd /tmp/nginx-${NGINX_VERSION} \
+       && echo "Adding OpenResty patches" \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-resolver_conf_parsing.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-upstream_pipelining.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-no_error_pages.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-log_escape_non_ascii.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-larger_max_error_str.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-upstream_timeout_fields.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-safe_resolver_ipv6_option.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-socket_cloexec.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-reuseport_close_unused_fds.patch) \
+       && echo "Adding other patches" \
+          && PATCH(https://github.com/kn007/patch/raw/master/nginx.patch) \
+          && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/spdy.patch) \
+       && cd /tmp \
     && git clone https://github.com/eustas/ngx_brotli.git \
-      && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
+       && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
 #if defined(ARCH_AMD64) || defined(ARCH_ARM64V8)
-      && git clone https://github.com/cloudflare/zlib.git \
-      && cd /tmp/zlib && make -f Makefile.in distclean && cd /tmp \
+       && git clone https://github.com/cloudflare/zlib.git \
+       && cd /tmp/zlib && make -f Makefile.in distclean && cd /tmp \
 #endif
     && git clone -b OQS-OpenSSL_1_1_1-stable https://github.com/open-quantum-safe/openssl.git \
-      && cd openssl \
-      && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1e-dev_ciphers.patch) \
-      && PATCH_LOCAL(/tmp/patch-openssl/openssl-oqs-1.1.1i-chacha_draft.patch) \
-      && cd /tmp \
+       && cd openssl \
+       && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1e-dev_ciphers.patch) \
+       && PATCH_LOCAL(/tmp/patch-openssl/openssl-oqs-1.1.1i-chacha_draft.patch) \
+       && cd /tmp \
     && git clone -b main https://github.com/open-quantum-safe/liboqs.git \
-      && mkdir /tmp/liboqs/build && cd /tmp/liboqs/build \
-      && cmake -DOQS_BUILD_ONLY_LIB=1 -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/tmp/openssl/oqs .. \
-      && make -j4 && make install && cd /tmp \
+       && mkdir /tmp/liboqs/build && cd /tmp/liboqs/build \
+       && cmake -DOQS_BUILD_ONLY_LIB=1 -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/tmp/openssl/oqs .. \
+       && make -j4 && make install && cd /tmp \
     && git clone https://github.com/vision5/ngx_devel_kit.git \
     && git clone https://github.com/openresty/array-var-nginx-module.git \
     && git clone https://github.com/openresty/echo-nginx-module.git \
     && git clone https://github.com/openresty/headers-more-nginx-module.git \
     && git clone https://github.com/openresty/set-misc-nginx-module.git \
     && git clone https://github.com/openresty/stream-echo-nginx-module.git \
-      && cd /tmp/stream-echo-nginx-module \
-      && PATCH_LOCAL(/tmp/stream-echo-nginx-module.patch) \
-      && cd /tmp \
+       && cd /tmp/stream-echo-nginx-module \
+       && PATCH_LOCAL(/tmp/stream-echo-nginx-module.patch) \
+       && cd /tmp \
     && git clone https://github.com/tokers/zstd-nginx-module.git \
     && git clone https://github.com/vozlt/nginx-module-vts.git \
     && echo "Replace system OpenSSL with our own" \
     && PKG_UNINSTALL(APP_BUILD_TOOLS_EARLY) \
     && cd /tmp/openssl \
-      && ./config --prefix=/usr --openssldir=/usr \
+       && ./config --prefix=/usr --openssldir=/usr \
 #if defined(ARCH_AMD64) || defined(ARCH_ARM64V8) || defined(ARCH_X32)
-         zlib no-tests enable-ec_nistp_64_gcc_128 \
+          zlib no-tests enable-ec_nistp_64_gcc_128 \
 #else
-         zlib no-tests \
+          zlib no-tests \
 #endif
-      && make -j4 && make install && cd /tmp \
+       && make -j4 && make install && cd /tmp \
     && cd /tmp/nginx-${NGINX_VERSION} \
 #ifdef ARCH_I386
     && setarch i386 ./configure \
