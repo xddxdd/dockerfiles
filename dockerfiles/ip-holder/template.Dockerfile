@@ -10,11 +10,11 @@ ENV TARGET_ARCH=arm
 #elif defined(ARCH_ARM64V8)
 ENV TARGET_ARCH=aarch64
 #elif defined(ARCH_PPC64LE)
-ENV TARGET_ARCH=powerpc64
+ENV TARGET_ARCH=ppc64le
 #elif defined(ARCH_S390X)
-ENV TARGET_ARCH=s390x
+ENV TARGET_ARCH=s390
 #elif defined(ARCH_RISCV64)
-ENV TARGET_ARCH=riscv64
+#error "RISC-V not supported"
 #elif defined(ARCH_X32)
 ENV TARGET_ARCH=x32
 #else
