@@ -220,67 +220,66 @@ index bdc406bb69..233f25b26c 100644
  # endif
  #endif
 diff --git a/crypto/objects/obj_dat.h b/crypto/objects/obj_dat.h
-index 0f8ced3b35..1b2579750b 100644
+index 3a5011f2cd..c15c6fcfb1 100644
 --- a/crypto/objects/obj_dat.h
 +++ b/crypto/objects/obj_dat.h
-@@ -1108,7 +1108,7 @@ static const unsigned char so[7974] = {
-     0x2B,0xCE,0x0F,0x06,0x01,0x03,                 /* [ 7967] OBJ_rsa3072_sphincsharaka128frobust */
+@@ -1120,7 +1120,7 @@ static const unsigned char so[8071] = {
+     0x2B,0xCE,0x0F,0x06,0x07,0x03,                 /* [ 8064] OBJ_rsa3072_sphincsshake256128frobust */
  };
  
--#define NUM_NID 1307
-+#define NUM_NID 1308
+-#define NUM_NID 1344
++#define NUM_NID 1345
  static const ASN1_OBJECT nid_objs[NUM_NID] = {
      {"UNDEF", "undefined", NID_undef},
      {"rsadsi", "RSA Data Security, Inc.", NID_rsadsi, 6, &so[0]},
-@@ -2417,9 +2417,10 @@ static const ASN1_OBJECT nid_objs[NUM_NID] = {
+@@ -2466,9 +2466,10 @@ static const ASN1_OBJECT nid_objs[NUM_NID] = {
+     {"p384_ntrulpr857", "p384_ntrulpr857", NID_p384_ntrulpr857},
      {"p384_sntrup761", "p384_sntrup761", NID_p384_sntrup761},
-     {"sntrup857", "sntrup857", NID_sntrup857},
      {"p384_sntrup857", "p384_sntrup857", NID_p384_sntrup857},
 +    {"ChaCha20-Poly1305-D", "chacha20-poly1305-draft", NID_chacha20_poly1305_draft},
  };
  
--#define NUM_SN 1298
-+#define NUM_SN 1299
+-#define NUM_SN 1310
++#define NUM_SN 1311
  static const unsigned int sn_objs[NUM_SN] = {
       364,    /* "AD_DVCS" */
       419,    /* "AES-128-CBC" */
-@@ -2537,6 +2538,7 @@ static const unsigned int sn_objs[NUM_SN] = {
+@@ -2586,6 +2587,7 @@ static const unsigned int sn_objs[NUM_SN] = {
       417,    /* "CSPName" */
      1019,    /* "ChaCha20" */
      1018,    /* "ChaCha20-Poly1305" */
-+    1307,    /* "ChaCha20-Poly1305-D" */
++    1344,    /* "ChaCha20-Poly1305-D" */
       367,    /* "CrlID" */
       391,    /* "DC" */
        31,    /* "DES-CBC" */
-@@ -3721,7 +3723,7 @@ static const unsigned int sn_objs[NUM_SN] = {
+@@ -3782,7 +3784,7 @@ static const unsigned int sn_objs[NUM_SN] = {
      1093,    /* "x509ExtAdmission" */
  };
  
--#define NUM_LN 1298
-+#define NUM_LN 1299
+-#define NUM_LN 1310
++#define NUM_LN 1311
  static const unsigned int ln_objs[NUM_LN] = {
       363,    /* "AD Time Stamping" */
       405,    /* "ANSI X9.62" */
-@@ -4104,6 +4106,7 @@ static const unsigned int ln_objs[NUM_LN] = {
+@@ -4165,6 +4167,7 @@ static const unsigned int ln_objs[NUM_LN] = {
       883,    /* "certificateRevocationList" */
      1019,    /* "chacha20" */
      1018,    /* "chacha20-poly1305" */
-+    1307,    /* "chacha20-poly1305-draft" */
++    1344,    /* "chacha20-poly1305-draft" */
        54,    /* "challengePassword" */
       407,    /* "characteristic-two-field" */
       395,    /* "clearance" */
 diff --git a/crypto/objects/obj_mac.num b/crypto/objects/obj_mac.num
-index 19d1b16c80..ea4cde2870 100644
+index 9d737af87e..fe8a2989f6 100644
 --- a/crypto/objects/obj_mac.num
 +++ b/crypto/objects/obj_mac.num
-@@ -1304,3 +1304,4 @@ sntrup761		1303
- p384_sntrup761		1304
- sntrup857		1305
- p384_sntrup857		1306
-+chacha20_poly1305_draft		1307
-\ No newline at end of file
+@@ -1341,3 +1341,4 @@ p384_ntrulpr761		1340
+ p384_ntrulpr857		1341
+ p384_sntrup761		1342
+ p384_sntrup857		1343
++chacha20_poly1305_draft		1344
 diff --git a/crypto/objects/objects.txt b/crypto/objects/objects.txt
-index 0edbbcda25..658af870ea 100644
+index efc1d7962e..e80e7b4312 100644
 --- a/crypto/objects/objects.txt
 +++ b/crypto/objects/objects.txt
 @@ -1534,6 +1534,7 @@ sm-scheme 104 7         : SM4-CTR             : sm4-ctr
@@ -292,10 +291,10 @@ index 0edbbcda25..658af870ea 100644
  
  ISO-US 10046 2 1	: dhpublicnumber		: X9.42 DH
 diff --git a/include/openssl/evp.h b/include/openssl/evp.h
-index 9e77f96146..ddd230c61a 100644
+index 5375528c1b..b197d18808 100644
 --- a/include/openssl/evp.h
 +++ b/include/openssl/evp.h
-@@ -963,6 +963,7 @@ const EVP_CIPHER *EVP_camellia_256_ctr(void);
+@@ -975,6 +975,7 @@ const EVP_CIPHER *EVP_camellia_256_ctr(void);
  const EVP_CIPHER *EVP_chacha20(void);
  #  ifndef OPENSSL_NO_POLY1305
  const EVP_CIPHER *EVP_chacha20_poly1305(void);
@@ -304,7 +303,7 @@ index 9e77f96146..ddd230c61a 100644
  # endif
  
 diff --git a/include/openssl/obj_mac.h b/include/openssl/obj_mac.h
-index 7e1a8ae83c..b2e79685fe 100644
+index a47c9a1070..cf40cb76e6 100644
 --- a/include/openssl/obj_mac.h
 +++ b/include/openssl/obj_mac.h
 @@ -4807,6 +4807,10 @@
@@ -481,10 +480,10 @@ index 735a483c64..aced63c50c 100644
      } else if (c->algorithm_mac & SSL_AEAD) {
          /* We're supposed to have handled all the AEAD modes above */
 diff --git a/ssl/ssl_local.h b/ssl/ssl_local.h
-index c44512d01b..9b0f9f6ac4 100644
+index 2b1469a35c..ab0dced383 100644
 --- a/ssl/ssl_local.h
 +++ b/ssl/ssl_local.h
-@@ -293,12 +293,13 @@
+@@ -317,12 +317,13 @@
  # define SSL_CHACHA20POLY1305    0x00080000U
  # define SSL_ARIA128GCM          0x00100000U
  # define SSL_ARIA256GCM          0x00200000U
