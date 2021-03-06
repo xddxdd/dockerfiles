@@ -18,7 +18,7 @@ ENV GOOS=linux GOARCH=s390x
 #elif defined(ARCH_RISCV64)
 ENV GOOS=linux GOARCH=riscv64
 #elif defined(ARCH_X32)
-ENV GOOS=linux GOARCH=386
+ENV GOOS=linux GOARCH=amd64
 #else
 #error "Architecture not set"
 #endif
