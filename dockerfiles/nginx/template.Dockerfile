@@ -28,6 +28,7 @@ RUN cd /tmp \
           && PATCH(https://github.com/kn007/patch/raw/master/nginx.patch) \
           && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/spdy.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/plain-protocol-use-after-spdy.patch) \
        && cd /tmp \
     && git clone https://github.com/eustas/ngx_brotli.git \
        && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
@@ -79,6 +80,7 @@ RUN cd /tmp \
        --with-http_gzip_static_module \
        --with-http_image_filter_module \
        --with-http_realip_module \
+       --with-http_plain_module \
        --with-http_spdy_module \
        --with-http_ssl_module \
        --with-http_stub_status_module \
