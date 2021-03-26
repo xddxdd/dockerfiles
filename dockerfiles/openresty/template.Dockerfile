@@ -6,7 +6,7 @@
 #define APP_BUILD_TOOLS_EARLY libssl-dev openssl
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake LINUX_HEADERS
 
-ENV OPENRESTY_VERSION=1.19.3.1 OPENRESTY_NGINX_VERSION=1.19.3 NGINX_VERSION=1.19.7
+ENV OPENRESTY_VERSION=1.19.3.1 OPENRESTY_NGINX_VERSION=1.19.3 NGINX_VERSION=1.19.8
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS APP_BUILD_TOOLS_EARLY) \
