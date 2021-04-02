@@ -3,17 +3,22 @@
 #include "env.Dockerfile"
 
 #define APP_DEPS libpcre3 zlib1g libgd3 util-linux libzstd1
-#define APP_BUILD_TOOLS_EARLY libssl-dev openssl
-#define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake LINUX_HEADERS
+#define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake libunwind-dev pkg-config python3 python3-psutil golang mercurial LINUX_HEADERS
 
-ENV NGINX_VERSION=1.19.8
+ENV NGINX_VERSION=1.19.9
 COPY patches /tmp/
 RUN cd /tmp \
-    && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS APP_BUILD_TOOLS_EARLY) \
+    && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
     && cd /tmp \
+#if defined(ARCH_AMD64)
+    && hg clone -b quic https://hg.nginx.org/nginx-quic \
+       && mv nginx-quic nginx \
+#else
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
        && tar xf nginx-${NGINX_VERSION}.tar.gz \
-       && cd /tmp/nginx-${NGINX_VERSION} \
+       && mv nginx-${NGINX_VERSION} nginx \
+#endif
+       && cd /tmp/nginx \
        && echo "Adding OpenResty patches" \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-resolver_conf_parsing.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-upstream_pipelining.patch) \
@@ -25,10 +30,18 @@ RUN cd /tmp \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-socket_cloexec.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-reuseport_close_unused_fds.patch) \
        && echo "Adding other patches" \
+#if defined(ARCH_AMD64)
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-quic-aware.patch) \
+          && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-spdy-quic-aware.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-spdy-quic-aware.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-quic-disable-openssl-check.patch) \
+#else
           && PATCH(https://github.com/kn007/patch/raw/master/nginx.patch) \
           && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/spdy.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/plain-protocol-use-after-spdy.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-spdy.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-spdy-aware.patch) \
+#endif
        && cd /tmp \
     && git clone https://github.com/eustas/ngx_brotli.git \
        && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
@@ -36,14 +49,18 @@ RUN cd /tmp \
        && git clone https://github.com/cloudflare/zlib.git \
        && cd /tmp/zlib && make -f Makefile.in distclean && cd /tmp \
 #endif
+#if defined(ARCH_AMD64)
+    && git clone https://github.com/open-quantum-safe/boringssl.git \
+#else
     && git clone -b OQS-OpenSSL_1_1_1-stable https://github.com/open-quantum-safe/openssl.git \
        && cd openssl \
        && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1e-dev_ciphers.patch) \
        && PATCH_LOCAL(/tmp/patch-openssl/openssl-oqs-1.1.1i-chacha_draft.patch) \
        && cd /tmp \
+#endif
     && git clone -b main https://github.com/open-quantum-safe/liboqs.git \
        && mkdir /tmp/liboqs/build && cd /tmp/liboqs/build \
-       && cmake -DOQS_BUILD_ONLY_LIB=1 -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/tmp/openssl/oqs .. \
+       && cmake -DOQS_BUILD_ONLY_LIB=1 -DBUILD_SHARED_LIBS=OFF -DOQS_USE_OPENSSL=OFF -DCMAKE_INSTALL_PREFIX=/tmp/boringssl/oqs .. \
        && make -j4 && make install && cd /tmp \
     && git clone https://github.com/vision5/ngx_devel_kit.git \
     && git clone https://github.com/openresty/array-var-nginx-module.git \
@@ -56,19 +73,31 @@ RUN cd /tmp \
        && cd /tmp \
     && git clone https://github.com/tokers/zstd-nginx-module.git \
     && git clone https://github.com/vozlt/nginx-module-vts.git \
+#if defined(ARCH_AMD64)
+    && cd /tmp/boringssl \
+       && mkdir -p /tmp/boringssl/build /tmp/boringssl/.openssl/lib /tmp/boringssl/.openssl/include \
+       && ln -sf /tmp/boringssl/include/openssl /tmp/boringssl/.openssl/include/openssl \
+       && touch /tmp/boringssl/.openssl/include/openssl/ssl.h \
+       && cd build && cmake .. && make -j4 \
+       && cp /tmp/boringssl/build/crypto/libcrypto.a /tmp/boringssl/build/ssl/libssl.a /tmp/boringssl/.openssl/lib \
+       && cd /tmp \
+#else
     && echo "Replace system OpenSSL with our own" \
     && PKG_UNINSTALL(APP_BUILD_TOOLS_EARLY) \
     && cd /tmp/openssl \
        && ./config --prefix=/usr --openssldir=/usr \
-#if defined(ARCH_AMD64) || defined(ARCH_ARM64V8) || defined(ARCH_X32)
+#if defined(ARCH_ARM64V8) || defined(ARCH_X32)
           zlib no-tests enable-ec_nistp_64_gcc_128 \
 #else
           zlib no-tests \
 #endif
        && make -j4 && make install && cd /tmp \
-    && cd /tmp/nginx-${NGINX_VERSION} \
-#ifdef ARCH_I386
+#endif
+    && cd /tmp/nginx \
+#if defined(ARCH_I386)
     && setarch i386 ./configure \
+#elif defined(ARCH_AMD64)
+    && ./auto/configure \
 #else
     && ./configure \
 #endif
@@ -87,10 +116,17 @@ RUN cd /tmp \
        --with-http_sub_module \
        --with-http_v2_module \
        --with-http_v2_hpack_enc \
+#if defined(ARCH_AMD64)
+       --with-http_v3_module \
+       --with-http_quic_module \
+#endif
        --with-stream \
        --with-stream_realip_module \
        --with-stream_ssl_module \
        --with-stream_ssl_preread_module \
+#if defined(ARCH_AMD64)
+       --with-stream_quic_module \
+#endif
 #if defined(ARCH_AMD64) || defined(ARCH_ARM64V8)
        --with-zlib=/tmp/zlib \
 #endif
@@ -103,15 +139,27 @@ RUN cd /tmp \
        --add-module=/tmp/stream-echo-nginx-module \
        --add-module=/tmp/zstd-nginx-module \
        --add-module=/tmp/nginx-module-vts \
+#if defined(ARCH_AMD64)
+       --with-openssl=/tmp/boringssl \
+       --with-cc-opt="-I/tmp/boringssl/oqs/include" \
+       --with-ld-opt="-L/tmp/boringssl/oqs/lib" \
+#else
        --with-openssl=/tmp/openssl \
-#if defined(ARCH_AMD64) || defined(ARCH_ARM64V8) || defined(ARCH_X32)
+#if defined(ARCH_ARM64V8) || defined(ARCH_X32)
        --with-openssl-opt="zlib no-tests enable-ec_nistp_64_gcc_128" \
 #else
        --with-openssl-opt="zlib no-tests" \
 #endif
        --with-cc-opt="-I/tmp/openssl/oqs/include" \
        --with-ld-opt="-L/tmp/openssl/oqs/lib" \
+#endif
     && sed -i 's/libcrypto.a/libcrypto.a -loqs/g' objs/Makefile \
+#if defined(ARCH_AMD64)
+    && mkdir -p /tmp/boringssl/.openssl/lib /tmp/boringssl/.openssl/include \
+    && ln -sf /tmp/boringssl/include/openssl /tmp/boringssl/.openssl/include/openssl \
+    && touch /tmp/boringssl/.openssl/include/openssl/ssl.h \
+    && cp /tmp/boringssl/build/crypto/libcrypto.a /tmp/boringssl/build/ssl/libssl.a /tmp/boringssl/.openssl/lib \
+#endif
 #ifdef ARCH_I386
     && setarch i386 make -j4 \
     && setarch i386 make install \
