@@ -3,21 +3,18 @@
 #include "env.Dockerfile"
 
 #define APP_DEPS libpcre3 zlib1g libgd3 util-linux libzstd1
-#define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake libunwind-dev pkg-config python3 python3-psutil golang mercurial LINUX_HEADERS
+#define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake libunwind-dev pkg-config python3 python3-psutil golang curl LINUX_HEADERS
 
-ENV NGINX_VERSION=1.19.9
+ENV NGINX_VERSION=1.19.10 QUICHE_VERSION=84c0f20
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
+    && curl https://sh.rustup.rs -sSf | sh -s -- -y \
+       && export PATH="/root/.cargo/bin:$PATH" \
     && cd /tmp \
-#if defined(ARCH_AMD64)
-    && hg clone -b quic https://hg.nginx.org/nginx-quic \
-       && mv nginx-quic nginx \
-#else
     && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
        && tar xf nginx-${NGINX_VERSION}.tar.gz \
        && mv nginx-${NGINX_VERSION} nginx \
-#endif
        && cd /tmp/nginx \
        && echo "Adding OpenResty patches" \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-resolver_conf_parsing.patch) \
@@ -31,11 +28,10 @@ RUN cd /tmp \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-reuseport_close_unused_fds.patch) \
        && echo "Adding other patches" \
 #if defined(ARCH_AMD64)
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-quic-aware.patch) \
+          && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_quic.patch) \
           && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-spdy-quic-aware.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-spdy-quic-aware.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-quic-disable-openssl-check.patch) \
 #else
           && PATCH(https://github.com/kn007/patch/raw/master/nginx.patch) \
           && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
@@ -50,6 +46,12 @@ RUN cd /tmp \
        && cd /tmp/zlib && make -f Makefile.in distclean && cd /tmp \
 #endif
 #if defined(ARCH_AMD64)
+    && git clone https://github.com/cloudflare/quiche \
+       && cd quiche \
+       && git checkout ${QUICHE_VERSION} \
+       && rm -rf deps/boringssl \
+       && ln -sf /tmp/boringssl deps/boringssl \
+       && cd /tmp \
     && git clone https://github.com/open-quantum-safe/boringssl.git \
 #else
     && git clone -b OQS-OpenSSL_1_1_1-stable https://github.com/open-quantum-safe/openssl.git \
@@ -96,8 +98,6 @@ RUN cd /tmp \
     && cd /tmp/nginx \
 #if defined(ARCH_I386)
     && setarch i386 ./configure \
-#elif defined(ARCH_AMD64)
-    && ./auto/configure \
 #else
     && ./configure \
 #endif
@@ -118,15 +118,11 @@ RUN cd /tmp \
        --with-http_v2_hpack_enc \
 #if defined(ARCH_AMD64)
        --with-http_v3_module \
-       --with-http_quic_module \
 #endif
        --with-stream \
        --with-stream_realip_module \
        --with-stream_ssl_module \
        --with-stream_ssl_preread_module \
-#if defined(ARCH_AMD64)
-       --with-stream_quic_module \
-#endif
 #if defined(ARCH_AMD64) || defined(ARCH_ARM64V8)
        --with-zlib=/tmp/zlib \
 #endif
@@ -140,6 +136,7 @@ RUN cd /tmp \
        --add-module=/tmp/zstd-nginx-module \
        --add-module=/tmp/nginx-module-vts \
 #if defined(ARCH_AMD64)
+       --with-quiche=/tmp/quiche \
        --with-openssl=/tmp/boringssl \
        --with-cc-opt="-I/tmp/boringssl/oqs/include" \
        --with-ld-opt="-L/tmp/boringssl/oqs/lib" \
@@ -168,6 +165,7 @@ RUN cd /tmp \
     && make install \
 #endif
     && strip /usr/local/nginx/sbin/* \
+    && rm -rf $HOME/.cargo $HOME/.rustup \
     && PKG_UNINSTALL(APP_BUILD_TOOLS) \
     && cd / && FINAL_CLEANUP() \
     && ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx

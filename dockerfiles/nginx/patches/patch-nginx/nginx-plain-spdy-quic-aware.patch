@@ -1,7 +1,8 @@
-diff -r 0c491657e1f5 -r a3cbcd11e7be auto/modules
---- a/auto/modules	Sat Apr 03 00:33:05 2021 +0800
-+++ b/auto/modules	Sat Apr 03 00:33:33 2021 +0800
-@@ -492,6 +492,18 @@
+diff --git a/auto/modules b/auto/modules
+index 8e68b5b..0b53601 100644
+--- a/auto/modules
++++ b/auto/modules
+@@ -486,6 +486,18 @@ if [ $HTTP = YES ]; then
          . auto/module
      fi
  
@@ -20,37 +21,39 @@ diff -r 0c491657e1f5 -r a3cbcd11e7be auto/modules
      if :; then
          ngx_module_name=ngx_http_static_module
          ngx_module_incs=
-diff -r 0c491657e1f5 -r a3cbcd11e7be auto/options
---- a/auto/options	Sat Apr 03 00:33:05 2021 +0800
-+++ b/auto/options	Sat Apr 03 00:33:33 2021 +0800
-@@ -59,6 +59,7 @@
+diff --git a/auto/options b/auto/options
+index 3e629ad..6b891ac 100644
+--- a/auto/options
++++ b/auto/options
+@@ -57,6 +57,7 @@ NGX_HTTP_SCGI_TEMP_PATH=
  HTTP_CACHE=YES
  HTTP_CHARSET=YES
  HTTP_GZIP=YES
 +HTTP_PLAIN=NO
  HTTP_SSL=NO
  HTTP_SPDY=NO
- HTTP_QUIC=NO
-@@ -239,6 +240,7 @@
+ HTTP_V2=NO
+@@ -232,6 +233,7 @@ $0: warning: the \"--with-ipv6\" option is deprecated"
          --http-scgi-temp-path=*)         NGX_HTTP_SCGI_TEMP_PATH="$value" ;;
  
          --with-http_ssl_module)          HTTP_SSL=YES               ;;
 +        --with-http_plain_module)        HTTP_PLAIN=YES             ;;
          --with-http_spdy_module)         HTTP_SPDY=YES              ;;
-         --with-http_quic_module)         HTTP_QUIC=YES              ;;
          --with-http_v2_module)           HTTP_V2=YES                ;;
-@@ -462,6 +464,7 @@
-   --without-quic_bpf_module          disable ngx_quic_bpf_module
+         --with-http_v2_hpack_enc)        HTTP_V2_HPACK_ENC=YES      ;;
+@@ -454,6 +456,7 @@ cat << END
+   --with-file-aio                    enable file AIO support
  
    --with-http_ssl_module             enable ngx_http_ssl_module
 +  --with-http_plain_module           enable ngx_http_plain_module
    --with-http_spdy_module            enable ngx_http_spdy_module
-   --with-http_quic_module            enable ngx_http_quic_module
    --with-http_v2_module              enable ngx_http_v2_module
-diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http.c
---- a/src/http/ngx_http.c	Sat Apr 03 00:33:05 2021 +0800
-+++ b/src/http/ngx_http.c	Sat Apr 03 00:33:33 2021 +0800
-@@ -1212,6 +1212,9 @@
+   --with-http_v2_hpack_enc           enable ngx_http_v2_hpack_enc
+diff --git a/src/http/ngx_http.c b/src/http/ngx_http.c
+index 90b398e..9dad3f0 100644
+--- a/src/http/ngx_http.c
++++ b/src/http/ngx_http.c
+@@ -1209,6 +1209,9 @@ ngx_http_add_addresses(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
  #if (NGX_HTTP_SPDY)
      ngx_uint_t             spdy;
  #endif
@@ -60,7 +63,7 @@ diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http.c
  
      /*
       * we cannot compare whole sockaddr struct's as kernel
-@@ -1256,6 +1259,9 @@
+@@ -1250,6 +1253,9 @@ ngx_http_add_addresses(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
  #if (NGX_HTTP_SPDY)
          spdy = lsopt->spdy || addr[i].opt.spdy;
  #endif
@@ -70,7 +73,7 @@ diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http.c
  
          if (lsopt->set) {
  
-@@ -1301,6 +1307,9 @@
+@@ -1292,6 +1298,9 @@ ngx_http_add_addresses(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
  #if (NGX_HTTP_SPDY)
          addr[i].opt.spdy = spdy;
  #endif
@@ -80,7 +83,7 @@ diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http.c
  
          return NGX_OK;
      }
-@@ -1355,6 +1364,15 @@
+@@ -1335,6 +1344,15 @@ ngx_http_add_address(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
  
  #endif
  
@@ -96,7 +99,7 @@ diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http.c
  #if (NGX_HTTP_SPDY && NGX_HTTP_SSL                                            \
       && !defined TLSEXT_TYPE_application_layer_protocol_negotiation           \
       && !defined TLSEXT_TYPE_next_proto_neg)
-@@ -1865,6 +1883,9 @@
+@@ -1847,6 +1865,9 @@ ngx_http_add_addrs(ngx_conf_t *cf, ngx_http_port_t *hport,
  #if (NGX_HTTP_V2)
          addrs[i].conf.http2 = addr[i].opt.http2;
  #endif
@@ -106,7 +109,7 @@ diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http.c
  #if (NGX_HTTP_SPDY)
          addrs[i].conf.spdy = addr[i].opt.spdy;
  #endif
-@@ -1939,6 +1960,9 @@
+@@ -1918,6 +1939,9 @@ ngx_http_add_addrs6(ngx_conf_t *cf, ngx_http_port_t *hport,
  #if (NGX_HTTP_V2)
          addrs6[i].conf.http2 = addr[i].opt.http2;
  #endif
@@ -116,10 +119,11 @@ diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http.c
  #if (NGX_HTTP_SPDY)
          addrs6[i].conf.spdy = addr[i].opt.spdy;
  #endif
-diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http.h
---- a/src/http/ngx_http.h	Sat Apr 03 00:33:05 2021 +0800
-+++ b/src/http/ngx_http.h	Sat Apr 03 00:33:33 2021 +0800
-@@ -108,6 +108,11 @@
+diff --git a/src/http/ngx_http.h b/src/http/ngx_http.h
+index 66b8bc9..f4f17fb 100644
+--- a/src/http/ngx_http.h
++++ b/src/http/ngx_http.h
+@@ -104,6 +104,11 @@ int ngx_http_ssl_certificate(ngx_ssl_conn_t *ssl_conn, void *arg);
  
  
  ngx_int_t ngx_http_parse_request_line(ngx_http_request_t *r, ngx_buf_t *b);
@@ -131,10 +135,11 @@ diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http.h
  ngx_int_t ngx_http_parse_uri(ngx_http_request_t *r);
  ngx_int_t ngx_http_parse_complex_uri(ngx_http_request_t *r,
      ngx_uint_t merge_slashes);
-diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http_core_module.c
---- a/src/http/ngx_http_core_module.c	Sat Apr 03 00:33:05 2021 +0800
-+++ b/src/http/ngx_http_core_module.c	Sat Apr 03 00:33:33 2021 +0800
-@@ -4094,6 +4094,18 @@
+diff --git a/src/http/ngx_http_core_module.c b/src/http/ngx_http_core_module.c
+index 7a5041a..ab85108 100644
+--- a/src/http/ngx_http_core_module.c
++++ b/src/http/ngx_http_core_module.c
+@@ -4108,6 +4108,18 @@ ngx_http_core_listen(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
  #endif
          }
  
@@ -153,12 +158,13 @@ diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http_core_module.c
          if (ngx_strcmp(value[n].data, "http2") == 0) {
  #if (NGX_HTTP_V2)
              lsopt.http2 = 1;
-diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http_core_module.h
---- a/src/http/ngx_http_core_module.h	Sat Apr 03 00:33:05 2021 +0800
-+++ b/src/http/ngx_http_core_module.h	Sat Apr 03 00:33:33 2021 +0800
-@@ -76,6 +76,9 @@
+diff --git a/src/http/ngx_http_core_module.h b/src/http/ngx_http_core_module.h
+index cac71ba..cf1c239 100644
+--- a/src/http/ngx_http_core_module.h
++++ b/src/http/ngx_http_core_module.h
+@@ -75,6 +75,9 @@ typedef struct {
+     unsigned                   wildcard:1;
      unsigned                   ssl:1;
-     unsigned                   quic:1;
      unsigned                   http2:1;
 +#if (NGX_HTTP_PLAIN)
 +    unsigned                   plain:1;
@@ -166,9 +172,9 @@ diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http_core_module.h
  #if (NGX_HTTP_SPDY)
      unsigned                   spdy:1;
  #endif
-@@ -244,6 +247,9 @@
+@@ -241,6 +244,9 @@ struct ngx_http_addr_conf_s {
+ 
      unsigned                   ssl:1;
-     unsigned                   quic:1;
      unsigned                   http2:1;
 +#if (NGX_HTTP_PLAIN)
 +    unsigned                   plain:1;
@@ -176,10 +182,11 @@ diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http_core_module.h
  #if (NGX_HTTP_SPDY)
      unsigned                   spdy:1;
  #endif
-diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http_parse.c
---- a/src/http/ngx_http_parse.c	Sat Apr 03 00:33:05 2021 +0800
-+++ b/src/http/ngx_http_parse.c	Sat Apr 03 00:33:33 2021 +0800
-@@ -855,6 +855,206 @@
+diff --git a/src/http/ngx_http_parse.c b/src/http/ngx_http_parse.c
+index 20ad89a..73f65fc 100644
+--- a/src/http/ngx_http_parse.c
++++ b/src/http/ngx_http_parse.c
+@@ -855,6 +855,206 @@ done:
  }
  
  
@@ -386,10 +393,11 @@ diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http_parse.c
  ngx_int_t
  ngx_http_parse_header_line(ngx_http_request_t *r, ngx_buf_t *b,
      ngx_uint_t allow_underscores)
-diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http_request.c
---- a/src/http/ngx_http_request.c	Sat Apr 03 00:33:05 2021 +0800
-+++ b/src/http/ngx_http_request.c	Sat Apr 03 00:33:33 2021 +0800
-@@ -15,6 +15,12 @@
+diff --git a/src/http/ngx_http_request.c b/src/http/ngx_http_request.c
+index 478bf43..f089115 100644
+--- a/src/http/ngx_http_request.c
++++ b/src/http/ngx_http_request.c
+@@ -15,6 +15,12 @@ static ngx_http_request_t *ngx_http_alloc_request(ngx_connection_t *c);
  static void ngx_http_process_request_line(ngx_event_t *rev);
  static void ngx_http_process_request_headers(ngx_event_t *rev);
  static ssize_t ngx_http_read_request_header(ngx_http_request_t *r);
@@ -402,7 +410,7 @@ diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http_request.c
  static ngx_int_t ngx_http_alloc_large_header_buffer(ngx_http_request_t *r,
      ngx_uint_t request_line);
  
-@@ -327,6 +333,11 @@
+@@ -329,6 +335,11 @@ ngx_http_init_connection(ngx_connection_t *c)
      rev->handler = ngx_http_wait_request_handler;
      c->write->handler = ngx_http_empty_handler;
  
@@ -414,7 +422,7 @@ diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http_request.c
  #if (NGX_HTTP_SPDY)
      if (hc->addr_conf->spdy) {
          rev->handler = ngx_http_spdy_init;
-@@ -518,6 +529,151 @@
+@@ -527,6 +538,151 @@ ngx_http_wait_request_handler(ngx_event_t *rev)
  }
  
  
@@ -566,7 +574,7 @@ diff -r 0c491657e1f5 -r a3cbcd11e7be src/http/ngx_http_request.c
  ngx_http_request_t *
  ngx_http_create_request(ngx_connection_t *c)
  {
-@@ -3607,6 +3763,110 @@
+@@ -3698,6 +3854,110 @@ ngx_http_request_empty_handler(ngx_http_request_t *r)
  }
  
  
