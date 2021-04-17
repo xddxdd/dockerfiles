@@ -66,7 +66,6 @@ RUN cd /tmp \
        && cd /tmp \
 #else
     && echo "Replace system OpenSSL with our own" \
-    && PKG_UNINSTALL(APP_BUILD_TOOLS_EARLY) \
     && cd /tmp/openssl \
        && ./config --prefix=/usr --openssldir=/usr \
 #if defined(ARCH_ARM64V8) || defined(ARCH_X32)
