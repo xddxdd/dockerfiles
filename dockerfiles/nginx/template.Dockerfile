@@ -5,7 +5,7 @@
 #define APP_DEPS libpcre3 zlib1g libgd3 util-linux libzstd1
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake libunwind-dev pkg-config python3 python3-psutil golang curl LINUX_HEADERS
 
-ENV NGINX_VERSION=1.19.10 QUICHE_VERSION=84c0f20
+ENV NGINX_VERSION=1.21.0 QUICHE_VERSION=84c0f20
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
@@ -28,15 +28,13 @@ RUN cd /tmp \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-reuseport_close_unused_fds.patch) \
        && echo "Adding other patches" \
 #if defined(ARCH_AMD64)
-          && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_quic.patch) \
+          && PATCH(https://github.com/kn007/patch/raw/b05b30d2628e389fa1097e7a142497d807beb5d6/nginx_with_quic.patch) \
           && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-spdy-quic-aware.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-spdy-quic-aware.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-quic-aware.patch) \
 #else
-          && PATCH(https://github.com/kn007/patch/raw/master/nginx.patch) \
+          && PATCH(https://github.com/kn007/patch/raw/b05b30d2628e389fa1097e7a142497d807beb5d6/nginx.patch) \
           && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-spdy.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-spdy-aware.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-quic-aware.patch) \
 #endif
        && cd /tmp \
     && git clone https://github.com/eustas/ngx_brotli.git \
