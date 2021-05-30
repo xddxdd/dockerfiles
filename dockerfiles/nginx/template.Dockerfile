@@ -60,7 +60,11 @@ RUN cd /tmp \
 #endif
     && git clone -b main https://github.com/open-quantum-safe/liboqs.git \
        && mkdir /tmp/liboqs/build && cd /tmp/liboqs/build \
+#if defined(ARCH_AMD64)
        && cmake -DOQS_BUILD_ONLY_LIB=1 -DBUILD_SHARED_LIBS=OFF -DOQS_USE_OPENSSL=OFF -DCMAKE_INSTALL_PREFIX=/tmp/boringssl/oqs .. \
+#else
+       && cmake -DOQS_BUILD_ONLY_LIB=1 -DBUILD_SHARED_LIBS=OFF -DOQS_USE_OPENSSL=OFF -DCMAKE_INSTALL_PREFIX=/tmp/openssl/oqs .. \
+#endif
        && make -j4 && make install && cd /tmp \
     && git clone https://github.com/vision5/ngx_devel_kit.git \
     && git clone https://github.com/openresty/array-var-nginx-module.git \
