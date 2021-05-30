@@ -5,7 +5,7 @@
 #define APP_DEPS libpcre3 zlib1g libgd3 util-linux libzstd1
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake libunwind-dev pkg-config python3 python3-psutil golang curl LINUX_HEADERS
 
-ENV OPENRESTY_VERSION=1.19.3.1 OPENRESTY_NGINX_VERSION=1.19.3 NGINX_VERSION=1.21.0 QUICHE_VERSION=84c0f20
+ENV OPENRESTY_VERSION=1.19.3.1 OPENRESTY_NGINX_VERSION=1.19.3 NGINX_VERSION=1.19.8 QUICHE_VERSION=84c0f20
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
@@ -23,6 +23,7 @@ RUN cd /tmp \
       && PATCH(https://github.com/kn007/patch/raw/b05b30d2628e389fa1097e7a142497d807beb5d6/nginx_with_quic.patch) \
       && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
       && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-quic-aware.patch) \
+      && PATCH_LOCAL(/tmp/patch-nginx/resolver-off-by-one-fix.patch) \
       && cd /tmp \
     && git clone https://github.com/eustas/ngx_brotli.git \
       && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
