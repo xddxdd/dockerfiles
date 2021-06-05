@@ -30,11 +30,6 @@ $1/$2: ${DOCKERFILES_DIR}/$1/Dockerfile.$2
 			[ -n "${JENKINS_HOME}" ] && docker push quay.io/${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} || /bin/true; \
 			docker tag ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} quay.io/${DOCKER_USERNAME}/$1:$2 || exit 1; \
 			[ -n "${JENKINS_HOME}" ] && docker push quay.io/${DOCKER_USERNAME}/$1:$2 || /bin/true; \
-		echo "Lan Tian Private Registry"; \
-			docker tag ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} docker.lantian.pub/${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} || exit 1; \
-			[ -n "${JENKINS_HOME}" ] && docker push docker.lantian.pub/${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} || /bin/true; \
-			docker tag ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} docker.lantian.pub/${DOCKER_USERNAME}/$1:$2 || exit 1; \
-			[ -n "${JENKINS_HOME}" ] && docker push docker.lantian.pub/${DOCKER_USERNAME}/$1:$2 || /bin/true; \
 	else \
 		echo "Dockerfile generation failed, see error above"; \
 		if [ -n "${JENKINS_HOME}" ]; then \
@@ -60,11 +55,6 @@ $1/latest: $1/amd64
 	[ -n "${JENKINS_HOME}" ] && docker push quay.io/${DOCKER_USERNAME}/$1:${BUILD_DATE} || /bin/true
 	@docker tag ${DOCKER_USERNAME}/$1:amd64-${BUILD_DATE} quay.io/${DOCKER_USERNAME}/$1:latest || exit 1
 	[ -n "${JENKINS_HOME}" ] && docker push quay.io/${DOCKER_USERNAME}/$1:latest || /bin/true
-	# Lan Tian Private Registry
-	@docker tag ${DOCKER_USERNAME}/$1:amd64-${BUILD_DATE} docker.lantian.pub/${DOCKER_USERNAME}/$1:${BUILD_DATE} || exit 1
-	[ -n "${JENKINS_HOME}" ] && docker push docker.lantian.pub/${DOCKER_USERNAME}/$1:${BUILD_DATE} || /bin/true
-	@docker tag ${DOCKER_USERNAME}/$1:amd64-${BUILD_DATE} docker.lantian.pub/${DOCKER_USERNAME}/$1:latest || exit 1
-	[ -n "${JENKINS_HOME}" ] && docker push docker.lantian.pub/${DOCKER_USERNAME}/$1:latest || /bin/true
 
 $(foreach arch,${ARCHITECTURES},$(eval $(call create-image-arch-target,$1,$(arch))))
 endef
