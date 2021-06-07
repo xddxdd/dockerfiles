@@ -60,10 +60,15 @@ RUN cd /tmp \
 #endif
     && git clone -b main https://github.com/open-quantum-safe/liboqs.git \
        && mkdir /tmp/liboqs/build && cd /tmp/liboqs/build \
+       && cmake .. \
+          -DOQS_BUILD_ONLY_LIB=1 \
+          -DBUILD_SHARED_LIBS=OFF \
+          -DOQS_USE_OPENSSL=OFF \
+          -DOQS_DIST_BUILD=ON \
 #if defined(ARCH_AMD64)
-       && cmake -DOQS_BUILD_ONLY_LIB=1 -DBUILD_SHARED_LIBS=OFF -DOQS_USE_OPENSSL=OFF -DCMAKE_INSTALL_PREFIX=/tmp/quiche/deps/boringssl/oqs .. \
+          -DCMAKE_INSTALL_PREFIX=/tmp/quiche/deps/boringssl/oqs \
 #else
-       && cmake -DOQS_BUILD_ONLY_LIB=1 -DBUILD_SHARED_LIBS=OFF -DOQS_USE_OPENSSL=OFF -DCMAKE_INSTALL_PREFIX=/tmp/openssl/oqs .. \
+          -DCMAKE_INSTALL_PREFIX=/tmp/openssl/oqs \
 #endif
        && make -j4 && make install && cd /tmp \
     && git clone https://github.com/vision5/ngx_devel_kit.git \
@@ -77,6 +82,8 @@ RUN cd /tmp \
        && cd /tmp \
     && git clone https://github.com/tokers/zstd-nginx-module.git \
     && git clone https://github.com/vozlt/nginx-module-vts.git \
+    && git clone https://github.com/vozlt/nginx-module-sts.git \
+    && git clone https://github.com/vozlt/nginx-module-stream-sts.git \
 #if defined(ARCH_AMD64)
     && cd /tmp/quiche/deps/boringssl \
        && mkdir -p /tmp/quiche/deps/boringssl/build /tmp/quiche/deps/boringssl/.openssl/lib /tmp/quiche/deps/boringssl/.openssl/include \
@@ -135,6 +142,8 @@ RUN cd /tmp \
        --add-module=/tmp/stream-echo-nginx-module \
        --add-module=/tmp/zstd-nginx-module \
        --add-module=/tmp/nginx-module-vts \
+       --add-module=/tmp/nginx-module-sts \
+       --add-module=/tmp/nginx-module-stream-sts \
 #if defined(ARCH_AMD64)
        --with-quiche=/tmp/quiche \
        --with-openssl=/tmp/quiche/deps/boringssl \

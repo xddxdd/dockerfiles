@@ -38,14 +38,14 @@ RUN cd /tmp \
 #endif
        && cd /tmp \
     && wget -q https://openresty.org/download/openresty-${OPENRESTY_VERSION}.tar.gz \
-      && tar xf openresty-${OPENRESTY_VERSION}.tar.gz \
-      && rm -rf /tmp/openresty-${OPENRESTY_VERSION}/bundle/nginx-${OPENRESTY_NGINX_VERSION} \
-      && mv /tmp/nginx /tmp/openresty-${OPENRESTY_VERSION}/bundle/nginx-${OPENRESTY_NGINX_VERSION} \
+       && tar xf openresty-${OPENRESTY_VERSION}.tar.gz \
+       && rm -rf /tmp/openresty-${OPENRESTY_VERSION}/bundle/nginx-${OPENRESTY_NGINX_VERSION} \
+       && mv /tmp/nginx /tmp/openresty-${OPENRESTY_VERSION}/bundle/nginx-${OPENRESTY_NGINX_VERSION} \
     && git clone https://github.com/eustas/ngx_brotli.git \
-      && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
+       && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
 #if defined(ARCH_AMD64) || defined(ARCH_ARM64V8)
-      && git clone https://github.com/cloudflare/zlib.git \
-      && cd /tmp/zlib && make -f Makefile.in distclean && cd /tmp \
+       && git clone https://github.com/cloudflare/zlib.git \
+       && cd /tmp/zlib && make -f Makefile.in distclean && cd /tmp \
 #endif
 #if defined(ARCH_AMD64)
     && git clone https://github.com/cloudflare/quiche \
@@ -63,19 +63,26 @@ RUN cd /tmp \
        && cd /tmp \
 #endif
     && git clone -b main https://github.com/open-quantum-safe/liboqs.git \
-      && mkdir /tmp/liboqs/build && cd /tmp/liboqs/build \
+       && mkdir /tmp/liboqs/build && cd /tmp/liboqs/build \
+       && cmake .. \
+          -DOQS_BUILD_ONLY_LIB=1 \
+          -DBUILD_SHARED_LIBS=OFF \
+          -DOQS_USE_OPENSSL=OFF \
+          -DOQS_DIST_BUILD=ON \
 #if defined(ARCH_AMD64)
-      && cmake -DOQS_BUILD_ONLY_LIB=1 -DBUILD_SHARED_LIBS=OFF -DOQS_USE_OPENSSL=OFF -DCMAKE_INSTALL_PREFIX=/tmp/quiche/deps/boringssl/oqs .. \
+          -DCMAKE_INSTALL_PREFIX=/tmp/quiche/deps/boringssl/oqs \
 #else
-      && cmake -DOQS_BUILD_ONLY_LIB=1 -DBUILD_SHARED_LIBS=OFF -DOQS_USE_OPENSSL=OFF -DCMAKE_INSTALL_PREFIX=/tmp/openssl/oqs .. \
+          -DCMAKE_INSTALL_PREFIX=/tmp/openssl/oqs \
 #endif
-      && make -j4 && make install && cd /tmp \
+       && make -j4 && make install && cd /tmp \
     && git clone https://github.com/openresty/stream-echo-nginx-module.git \
-      && cd /tmp/stream-echo-nginx-module \
-      && PATCH_LOCAL(/tmp/stream-echo-nginx-module.patch) \
-      && cd /tmp \
+       && cd /tmp/stream-echo-nginx-module \
+       && PATCH_LOCAL(/tmp/stream-echo-nginx-module.patch) \
+       && cd /tmp \
     && git clone https://github.com/tokers/zstd-nginx-module.git \
     && git clone https://github.com/vozlt/nginx-module-vts.git \
+    && git clone https://github.com/vozlt/nginx-module-sts.git \
+    && git clone https://github.com/vozlt/nginx-module-stream-sts.git \
 #if defined(ARCH_AMD64)
     && cd /tmp/quiche/deps/boringssl \
        && mkdir -p /tmp/quiche/deps/boringssl/build /tmp/quiche/deps/boringssl/.openssl/lib /tmp/quiche/deps/boringssl/.openssl/include \
@@ -129,6 +136,8 @@ RUN cd /tmp \
        --add-module=/tmp/stream-echo-nginx-module \
        --add-module=/tmp/zstd-nginx-module \
        --add-module=/tmp/nginx-module-vts \
+       --add-module=/tmp/nginx-module-sts \
+       --add-module=/tmp/nginx-module-stream-sts \
 #if defined(ARCH_AMD64)
        --with-quiche=/tmp/quiche \
        --with-openssl=/tmp/quiche/deps/boringssl \
