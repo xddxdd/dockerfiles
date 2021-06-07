@@ -27,15 +27,9 @@ RUN cd /tmp \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-socket_cloexec.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-reuseport_close_unused_fds.patch) \
        && echo "Adding other patches" \
-#if defined(ARCH_AMD64)
           && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_quic.patch) \
           && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-quic-aware.patch) \
-#else
-          && PATCH(https://github.com/kn007/patch/raw/master/nginx.patch) \
-          && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-quic-aware.patch) \
-#endif
        && cd /tmp \
     && git clone https://github.com/eustas/ngx_brotli.git \
        && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
@@ -43,7 +37,6 @@ RUN cd /tmp \
        && git clone https://github.com/cloudflare/zlib.git \
        && cd /tmp/zlib && make -f Makefile.in distclean && cd /tmp \
 #endif
-#if defined(ARCH_AMD64)
     && git clone https://github.com/cloudflare/quiche \
        && cd quiche \
        && git checkout ${QUICHE_VERSION} \
@@ -51,13 +44,6 @@ RUN cd /tmp \
        && cd /tmp/quiche/deps/boringssl \
           && PATCH_LOCAL(/tmp/patch-openssl/boringssl-oqs.patch) \
        && cd /tmp \
-#else
-    && git clone -b OQS-OpenSSL_1_1_1-stable https://github.com/open-quantum-safe/openssl.git \
-       && cd openssl \
-       && PATCH(https://github.com/hakasenyang/openssl-patch/raw/master/openssl-equal-1.1.1e-dev_ciphers.patch) \
-       && PATCH_LOCAL(/tmp/patch-openssl/openssl-oqs-1.1.1i-chacha_draft.patch) \
-       && cd /tmp \
-#endif
     && git clone -b main https://github.com/open-quantum-safe/liboqs.git \
        && mkdir /tmp/liboqs/build && cd /tmp/liboqs/build \
        && cmake .. \
@@ -65,11 +51,7 @@ RUN cd /tmp \
           -DBUILD_SHARED_LIBS=OFF \
           -DOQS_USE_OPENSSL=OFF \
           -DOQS_DIST_BUILD=ON \
-#if defined(ARCH_AMD64)
           -DCMAKE_INSTALL_PREFIX=/tmp/quiche/deps/boringssl/oqs \
-#else
-          -DCMAKE_INSTALL_PREFIX=/tmp/openssl/oqs \
-#endif
        && make -j4 && make install && cd /tmp \
     && git clone https://github.com/vision5/ngx_devel_kit.git \
     && git clone https://github.com/openresty/array-var-nginx-module.git \
@@ -84,7 +66,6 @@ RUN cd /tmp \
     && git clone https://github.com/vozlt/nginx-module-vts.git \
     && git clone https://github.com/vozlt/nginx-module-sts.git \
     && git clone https://github.com/vozlt/nginx-module-stream-sts.git \
-#if defined(ARCH_AMD64)
     && cd /tmp/quiche/deps/boringssl \
        && mkdir -p /tmp/quiche/deps/boringssl/build /tmp/quiche/deps/boringssl/.openssl/lib /tmp/quiche/deps/boringssl/.openssl/include \
        && ln -sf /tmp/quiche/deps/boringssl/src/include/openssl /tmp/quiche/deps/boringssl/.openssl/include/openssl \
@@ -92,17 +73,6 @@ RUN cd /tmp \
        && cd build && cmake .. && make -j4 \
        && cp /tmp/quiche/deps/boringssl/build/libcrypto.a /tmp/quiche/deps/boringssl/build/libssl.a /tmp/quiche/deps/boringssl/.openssl/lib \
        && cd /tmp \
-#else
-    && echo "Replace system OpenSSL with our own" \
-    && cd /tmp/openssl \
-       && ./config --prefix=/usr --openssldir=/usr \
-#if defined(ARCH_ARM64V8) || defined(ARCH_X32)
-          zlib no-tests enable-ec_nistp_64_gcc_128 \
-#else
-          zlib no-tests \
-#endif
-       && make -j4 && make install && cd /tmp \
-#endif
     && cd /tmp/nginx \
 #if defined(ARCH_I386)
     && setarch i386 ./configure \
@@ -123,9 +93,7 @@ RUN cd /tmp \
        --with-http_sub_module \
        --with-http_v2_module \
        --with-http_v2_hpack_enc \
-#if defined(ARCH_AMD64)
        --with-http_v3_module \
-#endif
        --with-stream \
        --with-stream_realip_module \
        --with-stream_ssl_module \
@@ -144,25 +112,15 @@ RUN cd /tmp \
        --add-module=/tmp/nginx-module-vts \
        --add-module=/tmp/nginx-module-sts \
        --add-module=/tmp/nginx-module-stream-sts \
-#if defined(ARCH_AMD64)
        --with-quiche=/tmp/quiche \
        --with-openssl=/tmp/quiche/deps/boringssl \
        --with-cc-opt="-I/tmp/quiche/deps/boringssl/oqs/include" \
        --with-ld-opt="-L/tmp/quiche/deps/boringssl/oqs/lib" \
-#elif defined(ARCH_ARM64V8) || defined(ARCH_X32)
-       --with-openssl=/tmp/openssl \
-       --with-openssl-opt="zlib no-tests enable-ec_nistp_64_gcc_128" \
-#else
-       --with-openssl=/tmp/openssl \
-       --with-openssl-opt="zlib no-tests" \
-#endif
     && sed -i 's/libcrypto.a/libcrypto.a -loqs/g' objs/Makefile \
-#if defined(ARCH_AMD64)
     && mkdir -p /tmp/quiche/deps/boringssl/.openssl/lib /tmp/quiche/deps/boringssl/.openssl/include \
     && ln -sf /tmp/quiche/deps/boringssl/src/include/openssl /tmp/quiche/deps/boringssl/.openssl/include/openssl \
     && touch /tmp/quiche/deps/boringssl/.openssl/include/openssl/ssl.h \
     && cp /tmp/quiche/deps/boringssl/build/libcrypto.a /tmp/quiche/deps/boringssl/build/libssl.a /tmp/quiche/deps/boringssl/.openssl/lib \
-#endif
 #ifdef ARCH_I386
     && setarch i386 make -j4 \
     && setarch i386 make install \
