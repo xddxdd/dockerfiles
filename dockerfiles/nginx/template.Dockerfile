@@ -5,7 +5,7 @@
 #define APP_DEPS libpcre3 zlib1g libgd3 util-linux libzstd1
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake libunwind-dev pkg-config python3 python3-psutil golang curl LINUX_HEADERS
 
-ENV NGINX_VERSION=1.21.0 QUICHE_VERSION=cf2a087
+ENV NGINX_VERSION=1.21.0 QUICHE_VERSION=7eb57c4
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
@@ -30,6 +30,7 @@ RUN cd /tmp \
           && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_quic.patch) \
           && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-quic-aware.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-proxy.patch) \
        && cd /tmp \
     && git clone https://github.com/eustas/ngx_brotli.git \
        && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
