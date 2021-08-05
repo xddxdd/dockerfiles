@@ -2,7 +2,7 @@
 #include "image/debian_sid.Dockerfile"
 #include "env.Dockerfile"
 
-#define APP_BUILD_TOOLS build-essential gcc-9 git musl-dev musl-tools wget bison flex automake autoconf
+#define APP_BUILD_TOOLS build-essential git musl-dev musl-tools wget bison flex automake autoconf
 
 #if defined(ARCH_AMD64)
 ENV TARGET_ARCH=x86_64
@@ -24,37 +24,29 @@ ENV TARGET_ARCH=x32
 #error "Architecture not set"
 #endif
 
-ENV NCURSES_VERSION=6.2 READLINE_VERSION=8.0
 RUN PKG_INSTALL(APP_BUILD_TOOLS) \
     && cd /tmp \
-    && export REALGCC=gcc-9 \
     && git clone https://github.com/sabotage-linux/kernel-headers.git \
-    && UNTARGZ(https://ftp.gnu.org/pub/gnu/ncurses/ncurses-${NCURSES_VERSION}.tar.gz) \
-       && mv /tmp/ncurses-${NCURSES_VERSION} /tmp/ncurses \
-       && cd /tmp/ncurses \
-       && ./configure CC="musl-gcc" CXX="musl-gcc" && make -j4 \
-       && cd /tmp \
-    && UNTARGZ(https://ftp.gnu.org/gnu/readline/readline-${READLINE_VERSION}.tar.gz) \
-       && mv /tmp/readline-${READLINE_VERSION} /tmp/readline \
-       && cd /tmp/readline \
-       && ./configure CC="musl-gcc" && make -j4 \
-       && cd /tmp \
     && git -c http.sslVerify=false clone https://gitlab.nic.cz/labs/bird.git \
        && cd /tmp/bird \
        && autoreconf \
        && ./configure \
           CC="musl-gcc" \
-          CFLAGS="-I/tmp/ncurses/include -I/tmp -I/tmp/kernel-headers/${TARGET_ARCH}/include" \
-          LDFLAGS="-L/tmp/ncurses/lib -L/tmp/readline -static" \
+          LD="musl-gcc" \
+          CFLAGS="-I/tmp/kernel-headers/${TARGET_ARCH}/include -flto" \
+          LDFLAGS="-static -flto" \
+          --disable-client \
           --prefix=/usr \
           --sysconfdir=/etc \
           --mandir=/usr/share/man \
           --localstatedir=/var \
        && make -j4 \
-       && strip /tmp/bird/bird /tmp/bird/birdc /tmp/bird/birdcl
+       && strip /tmp/bird/bird /tmp/bird/birdcl
 
 #include "image/scratch.Dockerfile"
-COPY --from=step_0 /tmp/bird/bird /tmp/bird/birdc /tmp/bird/birdcl /usr/sbin/
+COPY --from=step_0 /tmp/bird/bird /usr/sbin/bird
+COPY --from=step_0 /tmp/bird/birdcl /usr/sbin/birdc
+COPY --from=step_0 /tmp/bird/birdcl /usr/sbin/birdcl
 ADD bird.conf /etc/bird.conf
 ADD empty.txt /var/run/.empty
 ENTRYPOINT ["/usr/sbin/bird", "-f"]
