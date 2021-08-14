@@ -1,46 +1,26 @@
-local DockerJobArch(image, arch) = {
+local DockerJob(arch) = {
   "kind": "pipeline",
   "type": "docker",
-  "name": image + "-" + arch,
-  "clone": {
-    "disable": true
-  },
+  "name": arch,
   "steps": [
     {
-      "name": "check if build is required",
-      "image": "dwdraju/alpine-curl-jq",
+      "name": "determine target images",
+      "image": "alpine",
       "commands": [
-        "curl https://api.github.com/repos/xddxdd/dockerfiles/commits/$DRONE_COMMIT | jq \".files[].filename\" | tr -d '\"' | grep -E '^dockerfiles/" + image + "/' && exit 0 || exit 78"
-      ]
-    },
-    {
-      "name": "clone repo",
-      "image": "drone/git",
-      "commands": [
-        "git clone https://github.com/xddxdd/dockerfiles.git .",
-        "git checkout $DRONE_COMMIT"
+        "touch target_images",
+        "for F in $(echo \"DRONE_COMMIT_MESSAGE\" | cut -d':' -f1); do if [ -d dockerfiles/$F ]; then echo $F >> target_images; fi; done",
+        "cat target_images"
       ]
     },
     {
       "name": "build (WIP)",
       "image": "alpine",
       "commands": [
-        "echo make " + image + "/" + arch
+        "for F in $(cat target_images); do echo make $F/" + arch + "; done"
       ]
     }
   ]
 };
-
-local DockerJob(image) = [
-  DockerJobArch(image, 'latest'),
-  DockerJobArch(image, 'i386'),
-  DockerJobArch(image, 'arm32v7'),
-  DockerJobArch(image, 'arm64v8'),
-  DockerJobArch(image, 'ppc64le'),
-  DockerJobArch(image, 's390x'),
-  DockerJobArch(image, 'riscv64'),
-  DockerJobArch(image, 'x32')
-];
 
 [
   {
@@ -59,18 +39,12 @@ local DockerJob(image) = [
       "name": "target"
     }
   },
+  DockerJob('latest'),
+  DockerJob('i386'),
+  DockerJob('arm32v7'),
+  DockerJob('arm64v8'),
+  DockerJob('ppc64le'),
+  DockerJob('s390x'),
+  DockerJob('riscv64'),
+  DockerJob('x32')
 ]
-+ DockerJob('atduck')
-+ DockerJob('bird')
-+ DockerJob('coredns')
-+ DockerJob('dn42-pingfinder')
-+ DockerJob('ip-holder')
-+ DockerJob('nginx')
-+ DockerJob('nyancat')
-+ DockerJob('openresty')
-+ DockerJob('php7-fpm')
-+ DockerJob('powerdns')
-+ DockerJob('powerdns-recursor')
-+ DockerJob('route-chain')
-+ DockerJob('sleep')
-+ DockerJob('whois42d')
