@@ -19,7 +19,13 @@ local DockerJob(arch) = {
         "for F in $(echo \"$DRONE_COMMIT_MESSAGE\" | cut -d':' -f1); do if [ -d dockerfiles/$F ]; then echo $F >> target_images; fi; done",
         "echo \"$DRONE_COMMIT_MESSAGE\"",
         "cat target_images"
-      ]
+      ],
+      "when": {
+        "event": [
+          "push",
+          "cron"
+        ]
+      }
     },
     {
       "name": "build",
@@ -43,7 +49,13 @@ local DockerJob(arch) = {
         "DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends make gpp docker.io",
         "docker login -u $DOCKER_USER -p $DOCKER_PASS",
         "for F in $(cat target_images); do make $F/" + arch + " || exit $?; done"
-      ]
+      ],
+      "when": {
+        "event": [
+          "push",
+          "cron"
+        ]
+      }
     },
     {
       "name": "telegram notification for failure",
@@ -60,6 +72,10 @@ local DockerJob(arch) = {
       "when": {
         "status": [
           "failure"
+        ],
+        "event": [
+          "push",
+          "cron"
         ]
       }
     },
@@ -79,11 +95,9 @@ local DockerJob(arch) = {
         "status": [
           "success"
         ],
-        "event": {
-          "exclude": [
-            "cron"
-          ]
-        }
+        "event": [
+          "push"
+        ]
       }
     }
   ]
