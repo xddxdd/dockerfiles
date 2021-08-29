@@ -5,7 +5,7 @@
 #define APP_DEPS libpcre3 zlib1g libgd3 util-linux libzstd1
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake libunwind-dev pkg-config python3 python3-psutil golang curl LINUX_HEADERS
 
-ENV NGINX_VERSION=1.21.0 QUICHE_VERSION=7eb57c4
+ENV NGINX_VERSION=1.21.1
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
@@ -40,10 +40,9 @@ RUN cd /tmp \
 #endif
     && git clone https://github.com/cloudflare/quiche \
        && cd quiche \
-       && git checkout ${QUICHE_VERSION} \
-       && git submodule update --init --recursive \
-       && cd /tmp/quiche/deps/boringssl \
-          && PATCH_LOCAL(/tmp/patch-openssl/boringssl-oqs.patch) \
+       && cd /tmp/quiche/deps \
+          && rm -rf boringssl \
+          && git clone https://github.com/open-quantum-safe/boringssl.git \
        && cd /tmp \
     && git clone -b main https://github.com/open-quantum-safe/liboqs.git \
        && mkdir /tmp/liboqs/build && cd /tmp/liboqs/build \
@@ -69,10 +68,10 @@ RUN cd /tmp \
     && git clone https://github.com/vozlt/nginx-module-stream-sts.git \
     && cd /tmp/quiche/deps/boringssl \
        && mkdir -p /tmp/quiche/deps/boringssl/build /tmp/quiche/deps/boringssl/.openssl/lib /tmp/quiche/deps/boringssl/.openssl/include \
-       && ln -sf /tmp/quiche/deps/boringssl/src/include/openssl /tmp/quiche/deps/boringssl/.openssl/include/openssl \
+       && ln -sf /tmp/quiche/deps/boringssl/include/openssl /tmp/quiche/deps/boringssl/.openssl/include/openssl \
        && touch /tmp/quiche/deps/boringssl/.openssl/include/openssl/ssl.h \
-       && cd build && cmake .. && make -j4 \
-       && cp /tmp/quiche/deps/boringssl/build/libcrypto.a /tmp/quiche/deps/boringssl/build/libssl.a /tmp/quiche/deps/boringssl/.openssl/lib \
+       && cmake . && make -j4 \
+       && cp /tmp/quiche/deps/boringssl/crypto/libcrypto.a /tmp/quiche/deps/boringssl/ssl/libssl.a /tmp/quiche/deps/boringssl/.openssl/lib \
        && cd /tmp \
     && cd /tmp/nginx \
 #if defined(ARCH_I386)
@@ -119,9 +118,9 @@ RUN cd /tmp \
        --with-ld-opt="-L/tmp/quiche/deps/boringssl/oqs/lib" \
     && sed -i 's/libcrypto.a/libcrypto.a -loqs/g' objs/Makefile \
     && mkdir -p /tmp/quiche/deps/boringssl/.openssl/lib /tmp/quiche/deps/boringssl/.openssl/include \
-    && ln -sf /tmp/quiche/deps/boringssl/src/include/openssl /tmp/quiche/deps/boringssl/.openssl/include/openssl \
+    && ln -sf /tmp/quiche/deps/boringssl/include/openssl /tmp/quiche/deps/boringssl/.openssl/include/openssl \
     && touch /tmp/quiche/deps/boringssl/.openssl/include/openssl/ssl.h \
-    && cp /tmp/quiche/deps/boringssl/build/libcrypto.a /tmp/quiche/deps/boringssl/build/libssl.a /tmp/quiche/deps/boringssl/.openssl/lib \
+    && cp /tmp/quiche/deps/boringssl/crypto/libcrypto.a /tmp/quiche/deps/boringssl/ssl/libssl.a /tmp/quiche/deps/boringssl/.openssl/lib \
 #ifdef ARCH_I386
     && setarch i386 make -j4 \
     && setarch i386 make install \

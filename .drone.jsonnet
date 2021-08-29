@@ -23,6 +23,7 @@ local DockerJob(arch) = {
       "when": {
         "event": [
           "push",
+          "custom",
           "cron"
         ]
       }
@@ -53,6 +54,7 @@ local DockerJob(arch) = {
       "when": {
         "event": [
           "push",
+          "custom",
           "cron"
         ]
       }
@@ -75,6 +77,7 @@ local DockerJob(arch) = {
         ],
         "event": [
           "push",
+          "custom",
           "cron"
         ]
       }
@@ -96,7 +99,8 @@ local DockerJob(arch) = {
           "success"
         ],
         "event": [
-          "push"
+          "push",
+          "custom"
         ]
       }
     }
