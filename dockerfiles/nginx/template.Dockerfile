@@ -29,6 +29,7 @@ RUN cd /tmp \
        && echo "Adding other patches" \
           && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_quic.patch) \
           && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
+          && PATCH(https://github.com/kn007/patch/raw/master/Enable_BoringSSL_OCSP.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-quic-aware.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-proxy.patch) \
        && cd /tmp \
