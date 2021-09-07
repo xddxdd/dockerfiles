@@ -5,7 +5,7 @@
 #define APP_DEPS libpcre3 zlib1g libgd3 util-linux libzstd1
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake libunwind-dev pkg-config python3 python3-psutil golang curl LINUX_HEADERS
 
-ENV NGINX_VERSION=1.21.1
+ENV NGINX_VERSION=1.21.1 QUICHE_VERSION=e9f59a5
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
@@ -41,6 +41,7 @@ RUN cd /tmp \
 #endif
     && git clone https://github.com/cloudflare/quiche \
        && cd quiche \
+       && git checkout ${QUICHE_VERSION} \
        && cd /tmp/quiche/deps \
           && rm -rf boringssl \
           && git clone https://github.com/open-quantum-safe/boringssl.git \
