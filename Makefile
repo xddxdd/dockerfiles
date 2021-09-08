@@ -1,7 +1,7 @@
 # Basic definitions
 DOCKERFILES_DIR := dockerfiles
 DOCKER_USERNAME := xddxdd
-ARCHITECTURES := amd64 i386 arm32v7 arm64v8 ppc64le s390x riscv64 x32
+ARCHITECTURES := amd64 i386 arm32v7 arm64v8 ppc64le s390x riscv64
 IMAGES := $(subst ${DOCKERFILES_DIR}/,,$(wildcard ${DOCKERFILES_DIR}/*))
 
 ifeq ($(wildcard /var/run/docker-ram/docker.sock),)
@@ -27,11 +27,23 @@ ${DOCKERFILES_DIR}/$1/Dockerfile.$2: ${DOCKERFILES_DIR}/$1/template.Dockerfile
 $1/$2: ${DOCKERFILES_DIR}/$1/Dockerfile.$2
 	@export DOCKER_HOST=${DOCKER_HOST}; \
 	if [ -f ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ]; then \
-		docker build --pull --no-cache --squash -t ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} -f ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ${DOCKERFILES_DIR}/$1 || exit 1; \
-		echo "Docker Hub"; \
-			[ -z "${CI}" ] || docker push ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} && /bin/true; \
-			docker tag ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} ${DOCKER_USERNAME}/$1:$2 || exit 1; \
-			[ -z "${CI}" ] || docker push ${DOCKER_USERNAME}/$1:$2 && /bin/true; \
+		TAGS=""; \
+		TAGS="$$$${TAGS} -t ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE}"; \
+		TAGS="$$$${TAGS} -t ${DOCKER_USERNAME}/$1:$2"; \
+		[ "$2" = "amd64" ] && TAGS="$$$${TAGS} -t ${DOCKER_USERNAME}/$1:${BUILD_DATE}"; \
+		[ "$2" = "amd64" ] && TAGS="$$$${TAGS} -t ${DOCKER_USERNAME}/$1"; \
+		PLATFORM=""; \
+		[ "$2" = "amd64"   ] && PLATFORM="--platform linux/amd64"; \
+		[ "$2" = "i386"    ] && PLATFORM="--platform linux/386"; \
+		[ "$2" = "arm32v7" ] && PLATFORM="--platform linux/arm/v7"; \
+		[ "$2" = "arm64v8" ] && PLATFORM="--platform linux/arm64"; \
+		[ "$2" = "ppc64le" ] && PLATFORM="--platform linux/ppc64le"; \
+		[ "$2" = "s390x"   ] && PLATFORM="--platform linux/s390x"; \
+		[ "$2" = "riscv64" ] && PLATFORM="--platform linux/riscv64"; \
+		[ -z "${CI}" ] || PUSH="--push" && PUSH="--load"; \
+		docker buildx build --pull --no-cache $$$${PUSH} $$$${PLATFORM} $$$${TAGS} \
+			-f ${DOCKERFILES_DIR}/$1/Dockerfile.$2 \
+			${DOCKERFILES_DIR}/$1 || exit 1; \
 	else \
 		echo "Dockerfile generation failed, see error above"; \
 		exit 1; \
@@ -41,14 +53,7 @@ endef
 
 # Function to create targets for images
 define create-image-target
-$1:$(foreach arch,latest ${ARCHITECTURES},$1/${arch})
-
-# Target for latest image, mapping to amd64
-$1/latest: $1/amd64
-	@DOCKER_HOST=${DOCKER_HOST} docker tag ${DOCKER_USERNAME}/$1:amd64-${BUILD_DATE} ${DOCKER_USERNAME}/$1:${BUILD_DATE} || exit 1
-	[ -z "${CI}" ] || DOCKER_HOST=${DOCKER_HOST} docker push ${DOCKER_USERNAME}/$1:${BUILD_DATE} && /bin/true
-	@DOCKER_HOST=${DOCKER_HOST} docker tag ${DOCKER_USERNAME}/$1:amd64-${BUILD_DATE} ${DOCKER_USERNAME}/$1:latest || exit 1
-	[ -z "${CI}" ] || DOCKER_HOST=${DOCKER_HOST} docker push ${DOCKER_USERNAME}/$1:latest && /bin/true
+$1:$(foreach arch,${ARCHITECTURES},$1/${arch})
 
 $(foreach arch,${ARCHITECTURES},$(eval $(call create-image-arch-target,$1,$(arch))))
 endef
