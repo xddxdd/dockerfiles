@@ -76,3 +76,6 @@ images: $(foreach image,${IMAGES},$(image))
 
 clean:
 	@rm -rf ${DOCKERFILES_DIR}/*/Dockerfile.{$(shell echo ${ARCHITECTURES} | sed "s/ /,/g")}
+
+touch:
+	@dd if=/dev/urandom of=.touch bs=4K count=1
