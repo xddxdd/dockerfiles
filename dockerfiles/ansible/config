@@ -1,0 +1,6 @@
+StrictHostKeyChecking no
+UserKnownHostsFile=/dev/null
+VerifyHostKeyDNS yes
+LogLevel ERROR
+User root
+Port 2222
