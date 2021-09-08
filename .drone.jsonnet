@@ -19,7 +19,23 @@ local DockerJob(arch) = {
         "for F in $(echo \"$DRONE_COMMIT_MESSAGE\" | cut -d':' -f1); do if [ -d dockerfiles/$F ]; then echo $F >> target_images; fi; done",
         "echo \"$DRONE_COMMIT_MESSAGE\"",
         "cat target_images",
-        "[ \"$(cat target_images)\" = \"\" ] && exit 78"
+        "[ \"$(cat target_images)\" = \"\" ] && exit 78 || exit 0"
+      ],
+      "when": {
+        "event": [
+          "push",
+          "custom",
+          "cron"
+        ]
+      }
+    },
+    {
+      "name": "gpp generate",
+      "image": "debian",
+      "commands": [
+        "apt-get update",
+        "DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends make gpp",
+        "for F in $(cat target_images); do make dockerfiles/$F/Dockerfile." + arch + " || exit $?; done"
       ],
       "when": {
         "event": [
@@ -31,7 +47,7 @@ local DockerJob(arch) = {
     },
     {
       "name": "build",
-      "image": "debian",
+      "image": "docker",
       "volumes": [
         {
           "name": "dockersock",
@@ -47,8 +63,7 @@ local DockerJob(arch) = {
         },
       },
       "commands": [
-        "apt-get update",
-        "DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends make gpp docker.io",
+        "apk --no-cache add make",
         "docker login -u $DOCKER_USER -p $DOCKER_PASS",
         "for F in $(cat target_images); do make $F/" + arch + " || exit $?; done"
       ],
@@ -141,7 +156,7 @@ local DockerJob(arch) = {
       "name": "password"
     }
   },
-  DockerJob('latest'),
+  DockerJob('amd64'),
   DockerJob('i386'),
   DockerJob('arm32v7'),
   DockerJob('arm64v8'),
