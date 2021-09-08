@@ -5,7 +5,7 @@ FROM python:alpine
 #error "Only AMD64 is supported"
 #endif
 
-RUN apk add --no-cache build-base libffi-dev openssh git rust cargo openssl-dev \
+RUN apk add --no-cache build-base libffi-dev openssh git rsync rust cargo openssl-dev \
     && sh -c "ln -sf /usr/lib/python3.*/site-packages /usr/lib/python-site-packages" \
     && pip install ansible==3.4.0 mitogen==0.3.0rc1 \
     && mkdir -p /root/.ssh /etc/ansible
