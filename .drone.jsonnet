@@ -148,4 +148,5 @@ local DockerJob(arch) = {
   DockerJob('ppc64le'),
   DockerJob('s390x'),
   DockerJob('riscv64'),
+  DockerJob('x32')
 ]
