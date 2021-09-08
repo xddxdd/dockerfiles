@@ -19,7 +19,7 @@ local DockerJob(arch) = {
         "for F in $(echo \"$DRONE_COMMIT_MESSAGE\" | cut -d':' -f1); do if [ -d dockerfiles/$F ]; then echo $F >> target_images; fi; done",
         "echo \"$DRONE_COMMIT_MESSAGE\"",
         "cat target_images",
-        "[ \"$(cat target_images)\" = \"\" ] && exit 78"
+        "[ \"$(cat target_images)\" = \"\" ] && exit 78 || exit 0"
       ],
       "when": {
         "event": [
