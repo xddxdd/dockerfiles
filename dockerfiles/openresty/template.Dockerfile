@@ -5,38 +5,26 @@
 #define APP_DEPS libpcre3 zlib1g libgd3 util-linux libzstd1
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake libunwind-dev pkg-config python3 python3-psutil golang curl LINUX_HEADERS
 
-ENV OPENRESTY_VERSION=1.19.9.1 OPENRESTY_NGINX_VERSION=1.19.9 NGINX_VERSION=1.21.3 QUICHE_VERSION=e9f59a5
+#if !defined(ARCH_AMD64) && !defined(ARCH_ARM64V8)
+#error "Only AMD64 and ARM64V8 is supported"
+#endif
+
+ENV OPENRESTY_VERSION=1.19.9.1 OPENRESTY_NGINX_VERSION=1.19.9 QUICHE_VERSION=e9f59a5
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
     && curl https://sh.rustup.rs -sSf | sh -s -- -y \
        && export PATH="/root/.cargo/bin:$PATH" \
     && cd /tmp \
-    && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
-       && tar xf nginx-${NGINX_VERSION}.tar.gz \
-       && mv nginx-${NGINX_VERSION} nginx \
-       && cd /tmp/nginx \
-       && echo "Adding OpenResty patches" \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-resolver_conf_parsing.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-upstream_pipelining.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-no_error_pages.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-log_escape_non_ascii.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-larger_max_error_str.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-upstream_timeout_fields.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-safe_resolver_ipv6_option.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-socket_cloexec.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-reuseport_close_unused_fds.patch) \
-       && echo "Adding other patches" \
+    && wget -q https://openresty.org/download/openresty-${OPENRESTY_VERSION}.tar.gz \
+       && tar xf openresty-${OPENRESTY_VERSION}.tar.gz \
+       && cd /tmp/openresty-${OPENRESTY_VERSION}/bundle/nginx-${OPENRESTY_NGINX_VERSION} \
           && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_quic.patch) \
           && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
           && PATCH(https://github.com/kn007/patch/raw/master/Enable_BoringSSL_OCSP.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-quic-aware.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-proxy.patch) \
        && cd /tmp \
-    && wget -q https://openresty.org/download/openresty-${OPENRESTY_VERSION}.tar.gz \
-       && tar xf openresty-${OPENRESTY_VERSION}.tar.gz \
-       && rm -rf /tmp/openresty-${OPENRESTY_VERSION}/bundle/nginx-${OPENRESTY_NGINX_VERSION} \
-       && mv /tmp/nginx /tmp/openresty-${OPENRESTY_VERSION}/bundle/nginx-${OPENRESTY_NGINX_VERSION} \
     && git clone https://github.com/eustas/ngx_brotli.git \
        && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
 #if defined(ARCH_AMD64) || defined(ARCH_ARM64V8)

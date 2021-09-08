@@ -5,6 +5,10 @@
 #define APP_DEPS libpcre3 zlib1g libgd3 util-linux libzstd1
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake libunwind-dev pkg-config python3 python3-psutil golang curl LINUX_HEADERS
 
+#if !defined(ARCH_AMD64) && !defined(ARCH_ARM64V8)
+#error "Only AMD64 and ARM64V8 is supported"
+#endif
+
 ENV NGINX_VERSION=1.21.3 QUICHE_VERSION=e9f59a5
 COPY patches /tmp/
 RUN cd /tmp \
@@ -16,17 +20,6 @@ RUN cd /tmp \
        && tar xf nginx-${NGINX_VERSION}.tar.gz \
        && mv nginx-${NGINX_VERSION} nginx \
        && cd /tmp/nginx \
-       && echo "Adding OpenResty patches" \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-resolver_conf_parsing.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-upstream_pipelining.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-no_error_pages.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-log_escape_non_ascii.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-larger_max_error_str.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-upstream_timeout_fields.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-safe_resolver_ipv6_option.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-socket_cloexec.patch) \
-          && PATCH_LOCAL(/tmp/patch-nginx/nginx-1.17.10-reuseport_close_unused_fds.patch) \
-       && echo "Adding other patches" \
           && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_quic.patch) \
           && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
           && PATCH(https://github.com/kn007/patch/raw/master/Enable_BoringSSL_OCSP.patch) \
