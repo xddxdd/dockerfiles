@@ -5,7 +5,7 @@
 #define APP_DEPS libpcre3 zlib1g libgd3 util-linux libzstd1
 #define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake libunwind-dev pkg-config python3 python3-psutil golang curl LINUX_HEADERS
 
-ENV OPENRESTY_VERSION=1.19.9.1 OPENRESTY_NGINX_VERSION=1.19.9 NGINX_VERSION=1.21.1 QUICHE_VERSION=e9f59a5
+ENV OPENRESTY_VERSION=1.19.9.1 OPENRESTY_NGINX_VERSION=1.19.9 NGINX_VERSION=1.21.3 QUICHE_VERSION=e9f59a5
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
