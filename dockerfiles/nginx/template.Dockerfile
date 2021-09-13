@@ -3,42 +3,32 @@
 #include "env.Dockerfile"
 
 #define APP_DEPS libpcre3 zlib1g libgd3 util-linux libzstd1
-#define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake libunwind-dev pkg-config python3 python3-psutil golang curl LINUX_HEADERS
+#define APP_BUILD_TOOLS binutils build-essential git autoconf automake libtool wget libgd-dev libpcre3-dev zlib1g-dev libzstd-dev unzip patch cmake libunwind-dev pkg-config python3 python3-psutil golang curl LINUX_HEADERS mercurial
 
 #if !defined(ARCH_AMD64) && !defined(ARCH_ARM64V8)
 #error "Only AMD64 and ARM64V8 is supported"
 #endif
 
-ENV NGINX_VERSION=1.21.3 QUICHE_VERSION=e9f59a5
 COPY patches /tmp/
 RUN cd /tmp \
     && PKG_INSTALL(APP_DEPS APP_BUILD_TOOLS) \
-    && curl https://sh.rustup.rs -sSf | sh -s -- -y \
-       && export PATH="/root/.cargo/bin:$PATH" \
     && cd /tmp \
-    && wget -q http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
-       && tar xf nginx-${NGINX_VERSION}.tar.gz \
-       && mv nginx-${NGINX_VERSION} nginx \
+    && hg clone -b quic https://hg.nginx.org/nginx-quic \
+       && mv /tmp/nginx-quic /tmp/nginx \
        && cd /tmp/nginx \
-          && PATCH(https://github.com/kn007/patch/raw/master/nginx_with_quic.patch) \
           && PATCH(https://github.com/kn007/patch/raw/master/use_openssl_md5_sha1.patch) \
           && PATCH(https://github.com/kn007/patch/raw/master/Enable_BoringSSL_OCSP.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-hpack-dyntls.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-quic-disable-check.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-quic-aware.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-proxy.patch) \
+          && ln -sf auto/configure ./configure \
        && cd /tmp \
-    && git clone https://github.com/eustas/ngx_brotli.git \
+    && git clone https://github.com/google/ngx_brotli.git \
        && cd /tmp/ngx_brotli && git submodule update --init && cd /tmp \
-#if defined(ARCH_AMD64) || defined(ARCH_ARM64V8)
-       && git clone https://github.com/cloudflare/zlib.git \
+    && git clone https://github.com/cloudflare/zlib.git \
        && cd /tmp/zlib && make -f Makefile.in distclean && cd /tmp \
-#endif
-    && git clone https://github.com/cloudflare/quiche \
-       && cd quiche \
-       && git checkout ${QUICHE_VERSION} \
-       && cd /tmp/quiche/deps \
-          && rm -rf boringssl \
-          && git clone https://github.com/open-quantum-safe/boringssl.git \
-       && cd /tmp \
+    && git clone https://github.com/open-quantum-safe/boringssl.git \
     && git clone -b main https://github.com/open-quantum-safe/liboqs.git \
        && mkdir /tmp/liboqs/build && cd /tmp/liboqs/build \
        && cmake .. \
@@ -46,8 +36,8 @@ RUN cd /tmp \
           -DBUILD_SHARED_LIBS=OFF \
           -DOQS_USE_OPENSSL=OFF \
           -DOQS_DIST_BUILD=ON \
-          -DCMAKE_INSTALL_PREFIX=/tmp/quiche/deps/boringssl/oqs \
-       && make -j4 && make install && cd /tmp \
+          -DCMAKE_INSTALL_PREFIX=/tmp/boringssl/oqs \
+       && make install -j4 && cd /tmp \
     && git clone https://github.com/vision5/ngx_devel_kit.git \
     && git clone https://github.com/openresty/array-var-nginx-module.git \
     && git clone https://github.com/openresty/echo-nginx-module.git \
@@ -61,12 +51,12 @@ RUN cd /tmp \
     && git clone https://github.com/vozlt/nginx-module-vts.git \
     && git clone https://github.com/vozlt/nginx-module-sts.git \
     && git clone https://github.com/vozlt/nginx-module-stream-sts.git \
-    && cd /tmp/quiche/deps/boringssl \
-       && mkdir -p /tmp/quiche/deps/boringssl/build /tmp/quiche/deps/boringssl/.openssl/lib /tmp/quiche/deps/boringssl/.openssl/include \
-       && ln -sf /tmp/quiche/deps/boringssl/include/openssl /tmp/quiche/deps/boringssl/.openssl/include/openssl \
-       && touch /tmp/quiche/deps/boringssl/.openssl/include/openssl/ssl.h \
+    && cd /tmp/boringssl \
+       && mkdir -p /tmp/boringssl/build /tmp/boringssl/.openssl/lib /tmp/boringssl/.openssl/include \
+       && ln -sf /tmp/boringssl/include/openssl /tmp/boringssl/.openssl/include/openssl \
+       && touch /tmp/boringssl/.openssl/include/openssl/ssl.h \
        && cmake . && make -j4 \
-       && cp /tmp/quiche/deps/boringssl/crypto/libcrypto.a /tmp/quiche/deps/boringssl/ssl/libssl.a /tmp/quiche/deps/boringssl/.openssl/lib \
+       && cp /tmp/boringssl/crypto/libcrypto.a /tmp/boringssl/ssl/libssl.a /tmp/boringssl/.openssl/lib \
        && cd /tmp \
     && cd /tmp/nginx \
 #if defined(ARCH_I386)
@@ -89,13 +79,13 @@ RUN cd /tmp \
        --with-http_v2_module \
        --with-http_v2_hpack_enc \
        --with-http_v3_module \
+       --with-http_quic_module \
        --with-stream \
        --with-stream_realip_module \
        --with-stream_ssl_module \
        --with-stream_ssl_preread_module \
-#if defined(ARCH_AMD64) || defined(ARCH_ARM64V8)
+       --with-stream_quic_module \
        --with-zlib=/tmp/zlib \
-#endif
        --add-module=/tmp/ngx_brotli \
        --add-module=/tmp/ngx_devel_kit \
        --add-module=/tmp/array-var-nginx-module \
@@ -107,15 +97,14 @@ RUN cd /tmp \
        --add-module=/tmp/nginx-module-vts \
        --add-module=/tmp/nginx-module-sts \
        --add-module=/tmp/nginx-module-stream-sts \
-       --with-quiche=/tmp/quiche \
-       --with-openssl=/tmp/quiche/deps/boringssl \
-       --with-cc-opt="-I/tmp/quiche/deps/boringssl/oqs/include" \
-       --with-ld-opt="-L/tmp/quiche/deps/boringssl/oqs/lib" \
+       --with-openssl=/tmp/boringssl \
+       --with-cc-opt="-I/tmp/boringssl/include -I/tmp/boringssl/oqs/include" \
+       --with-ld-opt="-L/tmp/boringssl/build/ssl -L/tmp/boringssl/build/crypto -L/tmp/boringssl/oqs/lib" \
     && sed -i 's/libcrypto.a/libcrypto.a -loqs/g' objs/Makefile \
-    && mkdir -p /tmp/quiche/deps/boringssl/.openssl/lib /tmp/quiche/deps/boringssl/.openssl/include \
-    && ln -sf /tmp/quiche/deps/boringssl/include/openssl /tmp/quiche/deps/boringssl/.openssl/include/openssl \
-    && touch /tmp/quiche/deps/boringssl/.openssl/include/openssl/ssl.h \
-    && cp /tmp/quiche/deps/boringssl/crypto/libcrypto.a /tmp/quiche/deps/boringssl/ssl/libssl.a /tmp/quiche/deps/boringssl/.openssl/lib \
+    && mkdir -p /tmp/boringssl/.openssl/lib /tmp/boringssl/.openssl/include \
+    && ln -sf /tmp/boringssl/include/openssl /tmp/boringssl/.openssl/include/openssl \
+    && touch /tmp/boringssl/.openssl/include/openssl/ssl.h \
+    && cp /tmp/boringssl/crypto/libcrypto.a /tmp/boringssl/ssl/libssl.a /tmp/boringssl/.openssl/lib \
 #ifdef ARCH_I386
     && setarch i386 make -j4 \
     && setarch i386 make install \
@@ -124,9 +113,8 @@ RUN cd /tmp \
     && make install \
 #endif
     && strip /usr/local/nginx/sbin/* \
-    && rm -rf $HOME/.cargo $HOME/.rustup \
     && PKG_UNINSTALL(APP_BUILD_TOOLS) \
     && cd / && FINAL_CLEANUP() \
     && ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx
-#EXPOSE 80 443
+
 ENTRYPOINT ["/usr/sbin/nginx"]
