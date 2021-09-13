@@ -20,6 +20,7 @@ RUN cd /tmp \
           && PATCH(https://github.com/kn007/patch/raw/master/Enable_BoringSSL_OCSP.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-hpack-dyntls.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-quic-disable-check.patch) \
+          && PATCH_LOCAL(/tmp/patch-nginx/nginx-quic-disable-tcp-nodelay.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-quic-aware.patch) \
           && PATCH_LOCAL(/tmp/patch-nginx/nginx-plain-proxy.patch) \
           && ln -sf auto/configure ./configure \
