@@ -8,7 +8,8 @@ FROM python:alpine
 RUN apk add --no-cache build-base libffi-dev openssh git rsync rust cargo openssl-dev \
     && sh -c "ln -sf /usr/lib/python3.*/site-packages /usr/lib/python-site-packages" \
     && pip install ansible==3.4.0 mitogen==0.3.0rc1 \
-    && mkdir -p /root/.ssh /etc/ansible
+    && mkdir -p /root/.ssh /etc/ansible \
+    && rm -rf /root/.cache /root/.cargo
 
 COPY config /root/.ssh/config
 COPY ansible.cfg /etc/ansible/ansible.cfg
