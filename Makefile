@@ -29,9 +29,9 @@ $1/$2: ${DOCKERFILES_DIR}/$1/Dockerfile.$2
 	if [ -f ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ]; then \
 		docker build --pull --no-cache --squash -t ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} -f ${DOCKERFILES_DIR}/$1/Dockerfile.$2 ${DOCKERFILES_DIR}/$1 || exit 1; \
 		echo "Docker Hub"; \
-			[ -z "${CI}" ] || docker push ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} && /bin/true; \
+			[ -z "${CI}" ] || docker push ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} && true; \
 			docker tag ${DOCKER_USERNAME}/$1:$2-${BUILD_DATE} ${DOCKER_USERNAME}/$1:$2 || exit 1; \
-			[ -z "${CI}" ] || docker push ${DOCKER_USERNAME}/$1:$2 && /bin/true; \
+			[ -z "${CI}" ] || docker push ${DOCKER_USERNAME}/$1:$2 && true; \
 	else \
 		echo "Dockerfile generation failed, see error above"; \
 		exit 1; \
@@ -46,9 +46,9 @@ $1:$(foreach arch,latest ${ARCHITECTURES},$1/${arch})
 # Target for latest image, mapping to amd64
 $1/latest: $1/amd64
 	@DOCKER_HOST=${DOCKER_HOST} docker tag ${DOCKER_USERNAME}/$1:amd64-${BUILD_DATE} ${DOCKER_USERNAME}/$1:${BUILD_DATE} || exit 1
-	[ -z "${CI}" ] || DOCKER_HOST=${DOCKER_HOST} docker push ${DOCKER_USERNAME}/$1:${BUILD_DATE} && /bin/true
+	[ -z "${CI}" ] || DOCKER_HOST=${DOCKER_HOST} docker push ${DOCKER_USERNAME}/$1:${BUILD_DATE} && true
 	@DOCKER_HOST=${DOCKER_HOST} docker tag ${DOCKER_USERNAME}/$1:amd64-${BUILD_DATE} ${DOCKER_USERNAME}/$1:latest || exit 1
-	[ -z "${CI}" ] || DOCKER_HOST=${DOCKER_HOST} docker push ${DOCKER_USERNAME}/$1:latest && /bin/true
+	[ -z "${CI}" ] || DOCKER_HOST=${DOCKER_HOST} docker push ${DOCKER_USERNAME}/$1:latest && true
 
 $(foreach arch,${ARCHITECTURES},$(eval $(call create-image-arch-target,$1,$(arch))))
 endef
